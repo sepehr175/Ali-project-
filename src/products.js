@@ -173,10 +173,11 @@ const menSpecs = [
   ['performance','Motion Boxer Brief','Motion','Flexible boxer brief built for movement and recovery.']
 ];
 
-// Pexels CDN resizing keeps the browser payload small while preserving an exact 273x350 card image.
+// Pexels CDN resizing: same photo and same 273:350 crop as before, but requested at 3x (819x1050) and q=90
+// so the card stays sharp on retina / high-DPI screens (273px wide looked soft next to the 700x900 hover photos).
 const optimize = (url) => {
   if (url.includes('images.pexels.com')) {
-    return url.replace(/\?.*$/, '') + '?auto=compress&cs=tinysrgb&w=273&h=350&fit=crop&q=72';
+    return url.replace(/\?.*$/, '') + '?auto=compress&cs=tinysrgb&w=819&h=1050&fit=crop&q=90';
   }
   if (url.includes('cdn.media.amplience.net')) {
     return url.split('?')[0] + '?w=273&h=350&sm=c&fmt=jpg&q=72';
@@ -191,11 +192,103 @@ const W_OPT = W.map(optimize);
 const M_OPT = M.map(optimize);
 const J_OPT = J.map(optimize);
 
-// Exactly 50 distinct hero images are used across the 100-product catalog.
-// Remaining products reuse only after those 50 unique images are exhausted.
 const WOMEN_IMAGES = W_OPT;
-// Keep only the 26 distinct men's images requested: 23 men's catalog photos + 3 dedicated jockstrap photos.
-const MEN_IMAGES = [...[0,1,2,5,7,8,9,10,12,14,15,16,18,19,20,21,22,23,24,25,26,27,28].map(i=>M_OPT[i]), ...J_OPT.slice(0,3)];
+// Restored the previous men's photo set; the two user-provided photos are excluded.
+const MEN_IMAGES = [
+  'https://images.pexels.com/photos/20203365/pexels-photo-20203365.jpeg?auto=compress&cs=tinysrgb&w=700&h=900&fit=crop&q=78',
+  'https://images.pexels.com/photos/8874436/pexels-photo-8874436.jpeg?auto=compress&cs=tinysrgb&w=700&h=900&fit=crop&q=78',
+  'https://images.pexels.com/photos/17864093/pexels-photo-17864093.jpeg?auto=compress&cs=tinysrgb&w=700&h=900&fit=crop&q=78',
+  'https://images.pexels.com/photos/17864094/pexels-photo-17864094.jpeg?auto=compress&cs=tinysrgb&w=700&h=900&fit=crop&q=78',
+  'https://images.pexels.com/photos/5301650/pexels-photo-5301650.jpeg?auto=compress&cs=tinysrgb&w=700&h=900&fit=crop&q=78',
+  'https://images.pexels.com/photos/8874933/pexels-photo-8874933.jpeg?auto=compress&cs=tinysrgb&w=700&h=900&fit=crop&q=78',
+  'https://images.pexels.com/photos/8874670/pexels-photo-8874670.jpeg?auto=compress&cs=tinysrgb&w=700&h=900&fit=crop&q=78',
+  'https://images.pexels.com/photos/8875156/pexels-photo-8875156.jpeg?auto=compress&cs=tinysrgb&w=700&h=900&fit=crop&q=78',
+  'https://images.pexels.com/photos/19112107/pexels-photo-19112107.jpeg?auto=compress&cs=tinysrgb&w=700&h=900&fit=crop&q=78',
+  'https://images.pexels.com/photos/8874879/pexels-photo-8874879.jpeg?auto=compress&cs=tinysrgb&w=700&h=900&fit=crop&q=78',
+  'https://images.pexels.com/photos/27126039/pexels-photo-27126039.jpeg?auto=compress&cs=tinysrgb&w=700&h=900&fit=crop&q=78',
+  'https://images.pexels.com/photos/19607415/pexels-photo-19607415.jpeg?auto=compress&cs=tinysrgb&w=700&h=900&fit=crop&q=78',
+  'https://images.pexels.com/photos/10036419/pexels-photo-10036419.jpeg?auto=compress&cs=tinysrgb&w=700&h=900&fit=crop&q=78',
+  'https://images.pexels.com/photos/8874906/pexels-photo-8874906.jpeg?auto=compress&cs=tinysrgb&w=700&h=900&fit=crop&q=78',
+  'https://images.pexels.com/photos/17510799/pexels-photo-17510799.jpeg?auto=compress&cs=tinysrgb&w=700&h=900&fit=crop&q=78',
+  'https://images.pexels.com/photos/17510795/pexels-photo-17510795.jpeg?auto=compress&cs=tinysrgb&w=700&h=900&fit=crop&q=78',
+  'https://images.pexels.com/photos/17885546/pexels-photo-17885546.jpeg?auto=compress&cs=tinysrgb&w=700&h=900&fit=crop&q=78',
+  'https://images.pexels.com/photos/20337698/pexels-photo-20337698.jpeg?auto=compress&cs=tinysrgb&w=700&h=900&fit=crop&q=78',
+  'https://images.pexels.com/photos/20337699/pexels-photo-20337699.jpeg?auto=compress&cs=tinysrgb&w=700&h=900&fit=crop&q=78',
+  'https://images.pexels.com/photos/5301551/pexels-photo-5301551.jpeg?auto=compress&cs=tinysrgb&w=700&h=900&fit=crop&q=78',
+  'https://images.pexels.com/photos/10036396/pexels-photo-10036396.jpeg?auto=compress&cs=tinysrgb&w=700&h=900&fit=crop&q=78',
+  'https://images.pexels.com/photos/20337684/pexels-photo-20337684.jpeg?auto=compress&cs=tinysrgb&w=700&h=900&fit=crop&q=78',
+  'https://images.pexels.com/photos/8874682/pexels-photo-8874682.jpeg?auto=compress&cs=tinysrgb&w=700&h=900&fit=crop&q=78',
+  'https://images.pexels.com/photos/8874672/pexels-photo-8874672.jpeg?auto=compress&cs=tinysrgb&w=700&h=900&fit=crop&q=78',
+  'https://images.pexels.com/photos/17956261/pexels-photo-17956261.jpeg?auto=compress&cs=tinysrgb&w=700&h=900&fit=crop&q=78',
+  'https://images.pexels.com/photos/5301653/pexels-photo-5301653.jpeg?auto=compress&cs=tinysrgb&w=700&h=900&fit=crop&q=78'
+];
+
+// Model-wearing hover photography: each women's card is explicitly matched to the color/style described for that product.
+// The original catalog/model photography stays untouched; only the hover image changes.
+const WOMEN_HOVER = [
+  // Each hover image is explicitly assigned to the matching women's product below.
+  'https://images.pexels.com/photos/4519457/pexels-photo-4519457.jpeg?auto=compress&cs=tinysrgb&w=700&h=900&fit=crop&q=78', // w1 pink
+  'https://images.pexels.com/photos/10110680/pexels-photo-10110680.jpeg?auto=compress&cs=tinysrgb&w=700&h=900&fit=crop&q=78', // w2 yellow
+  'https://images.pexels.com/photos/6451097/pexels-photo-6451097.jpeg?auto=compress&cs=tinysrgb&w=700&h=900&fit=crop&q=78', // w3 white
+  'https://images.pexels.com/photos/12018041/pexels-photo-12018041.jpeg?auto=compress&cs=tinysrgb&w=700&h=900&fit=crop&q=78', // w4 black + gray
+  'https://images.pexels.com/photos/3924323/pexels-photo-3924323.jpeg?auto=compress&cs=tinysrgb&w=700&h=900&fit=crop&q=78', // w5 turquoise / teal
+  'https://images.pexels.com/photos/11103026/pexels-photo-11103026.jpeg?auto=compress&cs=tinysrgb&w=700&h=900&fit=crop&q=78', // w6 red
+  'https://images-static.nykaa.com/media/catalog/product/a/6/a62a7ebSLW-01P.jpg', // w7 peach
+  'https://images.pexels.com/photos/6812282/pexels-photo-6812282.jpeg?auto=compress&cs=tinysrgb&w=700&h=900&fit=crop&q=78', // w8 blue
+  'https://images.pexels.com/photos/8919905/pexels-photo-8919905.jpeg?auto=compress&cs=tinysrgb&w=700&h=900&fit=crop&q=78', // w9 white
+  'https://images.pexels.com/photos/29819356/pexels-photo-29819356.jpeg?auto=compress&cs=tinysrgb&w=700&h=900&fit=crop&q=78', // w10 pink
+  'https://images.pexels.com/photos/9881048/pexels-photo-9881048.jpeg?auto=compress&cs=tinysrgb&w=700&h=900&fit=crop&q=78', // w11 white
+  'https://img01.ztat.net/article/spp-media-p1/1f990907f4764f84a7fc0367bf7da597/c0475ac64597426992c37c1078e143a5.jpg?imwidth=762', // w12 pale yellow
+  'https://images.pexels.com/photos/2575680/pexels-photo-2575680.jpeg?auto=compress&cs=tinysrgb&w=700&h=900&fit=crop&q=78', // w13 white
+  'https://images.pexels.com/photos/5992704/pexels-photo-5992704.jpeg?auto=compress&cs=tinysrgb&w=700&h=900&fit=crop&q=78', // w14 black
+  'https://images.pexels.com/photos/5253849/pexels-photo-5253849.jpeg?auto=compress&cs=tinysrgb&w=700&h=900&fit=crop&q=78', // w15 light blue
+  'https://images.wear2.jp/coordinate/6y7kvj/20241015121122599/20241015121122599_500.jpg', // w16 peach
+  'https://images.pexels.com/photos/7642513/pexels-photo-7642513.jpeg?auto=compress&cs=tinysrgb&w=700&h=900&fit=crop&q=78', // w17 white
+  'https://images.pexels.com/photos/11182362/pexels-photo-11182362.jpeg?auto=compress&cs=tinysrgb&w=700&h=900&fit=crop&q=78', // w18 light blue
+  'https://images.pexels.com/photos/14765455/pexels-photo-14765455.jpeg?auto=compress&cs=tinysrgb&w=700&h=900&fit=crop&q=78', // w19 black
+  'https://images.pexels.com/photos/9486626/pexels-photo-9486626.jpeg?auto=compress&cs=tinysrgb&w=700&h=900&fit=crop&q=78', // w20 black
+  'https://imagens.viashopmoda.com.br/upload/Juruaia_IntimaPassion/colecoes/1/2021030409100301285_-_rendado_azul__calecon__%281%29_e.jpg', // w21 blue panty / matching blue set
+  'https://images.pexels.com/photos/12062765/pexels-photo-12062765.jpeg?auto=compress&cs=tinysrgb&w=700&h=900&fit=crop&q=78' // w22 black bra
+];
+
+// ---------------------------------------------------------------------------------------------------------------
+// Men's hover images: one real photo per product (no more 6-photo cycle, no dead placeholder links).
+// Photos come from CDLP's product pages (labelled black / white / grey) and from Walmart listings (labelled light blue / white); the four photos you
+// confirmed as correct keep their original links. Practice project: images are hot-linked, not downloaded.
+// ---------------------------------------------------------------------------------------------------------------
+const cdlp = (file, v, w = 900) => `https://cdlp.com/cdn/shop/files/${file}.jpg?v=${v}&width=${w}`;
+const wm = (path) => `https://i5.walmartimages.com/${path}?odnWidth=700&odnHeight=900&odnBg=FFFFFF`;
+const px = (id) => `https://images.pexels.com/photos/${id}/pexels-photo-${id}.jpeg?auto=compress&cs=tinysrgb&w=700&h=900&fit=crop&q=78`;
+
+const MEN_HOVER = [
+  'https://images.rawpixel.com/image_social_portrait/cHJpdmF0ZS9sci9pbWFnZXMvd2Vic2l0ZS8yMDI2LTAxL3NyLWltYWdlLTI1MTIyNS1iYm0wMy1zLTc0MC5qcGc.jpg', // m1  Essential Boxer Brief      white  (your original photo)
+  cdlp('boxer-brief-349257', 1727350309),  // m2  Second-Skin Boxer Brief   black, no model
+  cdlp('boxer-brief-415448', 1766054725),  // m3  Modal Boxer Brief         black, no model
+  cdlp('boxer-brief-921041', 1727350309),  // m4  Performance Boxer Brief   black, no model
+  'https://hips.hearstapps.com/vader-prod.s3.amazonaws.com/1669344465-82ac50e2_e8bf.jpg?crop=0.867xw%3A0.867xh%3B0.0657xw%2C0.0994xh&resize=980%3A*', // m5  Longline Boxer Brief       gray   (your original photo)
+  cdlp('boxer-brief-683409', 1768472324),  // m6  Rib Boxer Brief           white, no model
+  'https://cdn.shopify.com/s/files/1/0022/4008/6074/files/V8102DPR_SP25_MEN_S_ECOMM_ACCESSORIES_FLAT_LAY_1.png?v=1782942569&width=900', // m7  Airlight Boxer Brief      Vuori "Lifestyle Boxer Brief" flat lay, Sky Grey, no model
+  'https://cdn.shopify.com/s/files/1/0022/4008/6074/files/V8102DPR_SP25_MENS_ECOMM_ACCESSORIES_FLAT_LAY_1.jpg?v=1736363074&width=900', // m8  Contour Boxer Brief       REPLACED per request: was the same low-res walmart shot as m26 (Active Support Brief). Now Vuori "Lifestyle Boxer Brief" flat lay, Dark Pewter (light gray), no model, real high-res product photo.
+  cdlp('boxer-brief-207021', 1727350309),  // m9  Classic Cotton Brief      black
+  cdlp('boxer-brief-9374220', 1784332108), // m10 Minimal Modal Brief       grey
+  cdlp('boxer-brief-7752231', 1784332110), // m11 Contour Brief             grey
+  'https://i.pinimg.com/originals/5f/76/1d/5f761d77d242a32534df88ea8ad6a01f.png', // m12 Ribbed Brief               red on a model (same photo as m22)
+  cdlp('boxer-brief-321589', 1727350310),  // m13 Airlight Brief            white
+  cdlp('boxer-brief-1335438', 1784332109), // m14 Essential Black Brief     grey
+  cdlp('boxer-brief-847571', 1727350309),  // m15 Essential Trunk           black
+  cdlp('boxer-brief-512286', 1727350310),  // m16 Modal Trunk               white
+  cdlp('boxer-brief-8653806', 1784332110), // m17 Performance Trunk         grey
+  'https://www.mytheresa.com/image/1094/1238/100/cb/P00712777.jpg', // m18 Rib Trunk    REPLACED per request: was a patterned pair shown on a model. Now a plain white CDLP boxer-brief packshot (has legs, no model), real high-res product photo.
+  'https://images.rawpixel.com/image_social_portrait/cHJpdmF0ZS9sci9pbWFnZXMvd2Vic2l0ZS8yMDI2LTAxL3NyLWltYWdlLTI1MTIyNS1iYm0wMy1zLTc0MC5qcGc.jpg', // m19 Classic Woven Boxer        white  (your original photo, same as m1)
+  cdlp('boxer-brief-123575', 1766056194),  // m20 Cotton Poplin Boxer       white
+  'https://anmore.com.tw/image/cache/catalog/820321/820321-10-1280x1280.jpg', // m21 Studio Lounge Boxer        blue   (your original photo)
+  'https://i.pinimg.com/originals/5f/76/1d/5f761d77d242a32534df88ea8ad6a01f.png', // m22 Classic Support Jockstrap  red    (your original photo)
+  'https://hips.hearstapps.com/vader-prod.s3.amazonaws.com/1669344465-82ac50e2_e8bf.jpg?crop=0.867xw%3A0.867xh%3B0.0657xw%2C0.0994xh&resize=980%3A*', // m23 Sport Jockstrap            gray   (your original photo, same as m5)
+  cdlp('boxer-brief-3384085', 1784332111), // m24 Black Mesh Jockstrap      grey
+  cdlp('boxer-brief-998329', 1727350310),  // m25 Training Base Boxer       white
+  'https://cdn.shopify.com/s/files/1/0022/4008/6074/files/V8102DPR_SP25_MEN_S_ECOMM_ACCESSORIES_FLAT_LAY_1.png?v=1782942569&width=900'  // m26 Active Support Brief      REPLACED per request: was a low-quality Walmart photo duplicated on m8. Now Vuori "Lifestyle Boxer Brief" flat lay, Sky Grey, no model, real high-res product photo.
+];
+
 
 const pickCategorySpecs = (specs, limits) => {
   const seen = {};
@@ -213,7 +306,7 @@ const menCatalogSpecs = pickCategorySpecs(menSpecs, {
   'boxer-brief': 8, brief: 6, trunk: 4, boxer: 3, jockstrap: 3, performance: 2
 });
 
-const make = (specs, gender, prefix, imagePool) => specs.map((s, i) => {
+const make = (specs, gender, prefix, imagePool, hoverPool) => specs.map((s, i) => {
   const [category, name, collection, description] = s;
   const img = imagePool[i];
   return {
@@ -224,15 +317,15 @@ const make = (specs, gender, prefix, imagePool) => specs.map((s, i) => {
     sizes: gender === 'Women' ? ['XS','S','M','L','XL'] : ['S','M','L','XL','XXL'],
     image: img,
     images: [img],
+    hoverImage: gender === 'Women' ? hoverPool[i] : hoverPool[i % hoverPool.length],
     color: /red/i.test(name) ? 'Red' : /white/i.test(name) ? 'White' : /black/i.test(name) ? 'Black' : /navy/i.test(name) ? 'Navy' : 'As shown',
     badge: i === 0 ? 'BEST SELLER' : i === 5 ? 'NEW' : ''
   };
 });
 
-const womenProductsRaw = make(womenCatalogSpecs, 'Women', 'w', WOMEN_IMAGES);
-const menProductsRaw = make(menCatalogSpecs, 'Men', 'm', MEN_IMAGES);
+const womenProductsRaw = make(womenCatalogSpecs, 'Women', 'w', WOMEN_IMAGES, WOMEN_HOVER);
+const menProductsRaw = make(menCatalogSpecs, 'Men', 'm', MEN_IMAGES, MEN_HOVER);
 
 export const products = [...womenProductsRaw, ...menProductsRaw];
 export const womenProducts = womenProductsRaw;
 export const menProducts = menProductsRaw;
-

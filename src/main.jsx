@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useLayoutEffect, useMemo, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter, Routes, Route, Link, useNavigate, useLocation, useParams, useSearchParams } from "react-router-dom";
 import { Search, ShoppingBag, UserRound, Menu, X, ArrowRight, ChevronDown, Minus, Plus, Trash2, CreditCard, CheckCircle2, Instagram, Mail, MapPin, Truck, CalendarDays, Home as HomeIcon, Sparkles } from "lucide-react";
@@ -6,7 +6,25 @@ import { products } from "./products";
 import "./index.css";
 
 const money = (n) => `€${n.toFixed(2)}`;
-const CATALOG_VERSION = "underwear-only-v7";
+const CATALOG_VERSION = "underwear-only-v10";
+
+// Stop the browser from restoring the previous scroll position on its own; we control it below.
+if (typeof window !== "undefined" && "scrollRestoration" in window.history) {
+  window.history.scrollRestoration = "manual";
+}
+
+// Every navigation (product, menu link, mobile bar, search, back/forward, even re-clicking the
+// current link) shows the new page from the very top. useLayoutEffect runs BEFORE the browser
+// paints, so the user never sees the new page at the old scroll position or scrolling up.
+function ScrollToTop() {
+  const { key } = useLocation();
+  useLayoutEffect(() => {
+    window.scrollTo(0, 0);
+    document.documentElement.scrollTop = 0; // iOS Safari / older browsers
+    document.body.scrollTop = 0;
+  }, [key]);
+  return null;
+}
 
 function useReveal(deps = []) {
   useEffect(() => {
@@ -34,6 +52,11 @@ function App() {
   const location = useLocation();
 
   useEffect(() => {
+    document.body.style.overflow = menu ? "hidden" : "";
+    return () => { document.body.style.overflow = ""; };
+  }, [menu]);
+
+  useEffect(() => {
     const params = new URLSearchParams(location.search);
     setSearch(params.get("q") || "");
   }, [location.pathname, location.search]);
@@ -51,6 +74,7 @@ function App() {
   const subtotal = cart.reduce((s,x)=>s+x.product.price*x.qty,0);
 
   return <div className="min-h-screen bg-[#050505] text-white">
+    <ScrollToTop/>
     <header className="sticky top-0 z-50 border-b border-white/10 bg-black/90 backdrop-blur-xl">
       <div className="hidden md:flex h-16 items-center justify-between px-6 lg:px-10">
         <Link to="/" className="text-lg font-black tracking-[.35em]">NOIRLINE</Link>
@@ -58,6 +82,7 @@ function App() {
           <Link className="underline-grow" to="/">Home</Link>
           <Link className="underline-grow" to="/shop/women">Women</Link>
           <Link className="underline-grow" to="/shop/men">Men</Link>
+          <Link className="underline-grow" to="/orders">Orders</Link>
           <Link className="underline-grow" to="/raffle">Raffle</Link>
           <Link className="underline-grow" to="/about">About</Link>
           <Link className="underline-grow" to="/contact">Contact</Link>
@@ -75,14 +100,24 @@ function App() {
       </div>
 
       <div className="flex h-16 items-center justify-between px-4 md:hidden">
-        <button onClick={()=>setMenu(v=>!v)} aria-label="Menu">{menu?<X/>:<Menu/>}</button>
-        <Link to="/" className="text-sm font-black tracking-[.32em]">NOIRLINE</Link>
-        <Link to="/cart" className="relative"><ShoppingBag size={20}/>{count>0&&<span className="absolute -right-2 -top-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-white px-1 text-[9px] text-black">{count}</span>}</Link>
+        <button onClick={()=>setMenu(v=>!v)} aria-label={menu ? "Close menu" : "Open menu"} className="relative z-[60] flex h-10 w-10 items-center justify-center">{menu?<X/>:<Menu/>}</button>
+        <Link to="/" onClick={()=>setMenu(false)} className="text-sm font-black tracking-[.32em]">NOIRLINE</Link>
+        <Link to="/cart" onClick={()=>setMenu(false)} className="relative z-[60] flex h-10 w-10 items-center justify-center"><ShoppingBag size={20}/>{count>0&&<span className="absolute right-0 top-0 flex h-4 min-w-4 items-center justify-center rounded-full bg-white px-1 text-[9px] text-black">{count}</span>}</Link>
       </div>
 
-      {menu && <div className="border-t border-white/10 px-5 py-6 md:hidden">
-        <div className="grid gap-5 text-xs uppercase tracking-[.2em]">
-          <Link onClick={()=>setMenu(false)} to="/">Home</Link><Link onClick={()=>setMenu(false)} to="/shop/women">Women</Link><Link onClick={()=>setMenu(false)} to="/shop/men">Men</Link><Link onClick={()=>setMenu(false)} to="/raffle">Raffle</Link><Link onClick={()=>setMenu(false)} to="/about">About</Link><Link onClick={()=>setMenu(false)} to="/contact">Contact</Link><Link onClick={()=>setMenu(false)} to="/account">Account</Link>
+      {menu && <div className="mobile-menu-overlay fixed inset-x-0 bottom-0 top-16 z-50 overflow-y-auto bg-black px-6 py-10 md:hidden">
+        <div className="flex min-h-full flex-col">
+          <div className="grid gap-7 text-sm uppercase tracking-[.2em]">
+            <Link onClick={()=>setMenu(false)} to="/">Home</Link>
+            <Link onClick={()=>setMenu(false)} to="/shop/women">Women</Link>
+            <Link onClick={()=>setMenu(false)} to="/shop/men">Men</Link>
+            <Link onClick={()=>setMenu(false)} to="/orders">Orders</Link>
+            <Link onClick={()=>setMenu(false)} to="/raffle">Raffle</Link>
+            <Link onClick={()=>setMenu(false)} to="/about">About</Link>
+            <Link onClick={()=>setMenu(false)} to="/contact">Contact</Link>
+            <Link onClick={()=>setMenu(false)} to="/account">Sign In</Link>
+            <Link onClick={()=>setMenu(false)} to="/account?mode=register">Register</Link>
+          </div>
         </div>
       </div>}
     </header>
@@ -103,6 +138,7 @@ function App() {
       <Route path="/contact" element={<Contact/>}/>
       <Route path="/account" element={<Account profile={profile} setProfile={setProfile}/>}/>
       <Route path="/order-dashboard" element={<OrderDashboard/>}/>
+      <Route path="/orders" element={<Orders/>}/>
       <Route path="/raffle" element={<Raffle/>}/>
       <Route path="*" element={<NotFound/>}/>
     </Routes>
@@ -224,7 +260,7 @@ function ProductGrid({items}) {
 }
 function ProductCard({p,i}) {
   return <Link to={`/product/${p.id}`} className="reveal group block" style={{transitionDelay:`${(i%4)*70}ms`}}>
-    <div className="product-media image-zoom relative overflow-hidden bg-white">
+    <div className="product-media image-zoom relative overflow-hidden bg-white product-card-media">
       <img
         src={p.image}
         alt={p.name}
@@ -232,9 +268,22 @@ function ProductCard({p,i}) {
         decoding="async"
         width="273"
         height="350"
-        className="h-full w-full object-cover opacity-95"
+        className="product-primary-image h-full w-full object-cover opacity-95"
+        style={{objectPosition:p.gender === "Men" ? "50% 72%" : "50% 50%"}}
         onError={e=>{e.currentTarget.style.display="none"; e.currentTarget.parentElement.classList.add("image-failed")}}
       />
+      {p.hoverImage && <img
+        src={p.hoverImage}
+        alt=""
+        aria-hidden="true"
+        loading="lazy"
+        decoding="async"
+        width="273"
+        height="350"
+        className="product-hover-image absolute inset-0 h-full w-full object-cover"
+        onError={e=>{e.currentTarget.style.display="none"}}
+      />}
+      <span className="product-hover-label pointer-events-none absolute left-3 bottom-3 bg-white/95 px-2 py-1 text-[8px] font-bold uppercase tracking-[.16em] text-black">Product view</span>
       {p.badge && <span className="absolute left-3 top-3 bg-white px-2 py-1 text-[8px] font-bold tracking-[.15em] text-black">{p.badge}</span>}
       <span className="absolute bottom-3 right-3 translate-y-2 bg-black px-3 py-2 text-[9px] uppercase tracking-[.14em] opacity-0 transition group-hover:translate-y-0 group-hover:opacity-100">Quick view</span>
     </div>
@@ -250,8 +299,8 @@ function Product({add}) {
   return <main className="mx-auto max-w-7xl px-5 py-10 md:px-10 md:py-16">
     <div className="grid gap-10 md:grid-cols-[1.15fr_.85fr] md:gap-16">
       <div>
-        <div className="image-zoom product-main-image overflow-hidden bg-white"><img src={gallery[activeImage]} alt={p.name} loading="eager" decoding="async" width="273" height="350" className="h-auto w-full object-cover" onError={e=>{e.currentTarget.style.display="none"}}/></div>
-        <div className="mt-3 grid grid-cols-3 gap-3">{gallery.map((img,i)=><button key={img} onClick={()=>setActiveImage(i)} className={`overflow-hidden border ${activeImage===i?'border-white':'border-white/10 opacity-60 hover:opacity-100'}`}><img src={img} alt={`${p.name} view ${i+1}`} loading="lazy" decoding="async" width="273" height="350" className="aspect-[273/350] w-full object-cover bg-white"/></button>)}</div>
+        <div className="image-zoom product-main-image overflow-hidden bg-white"><img src={gallery[activeImage]} alt={p.name} loading="eager" decoding="async" width="273" height="350" className="h-auto w-full object-cover" style={{objectPosition:p.gender === "Men" ? "50% 72%" : "50% 50%"}} onError={e=>{e.currentTarget.style.display="none"}}/></div>
+        <div className="mt-3 grid grid-cols-3 gap-3">{gallery.map((img,i)=><button key={img} onClick={()=>setActiveImage(i)} className={`overflow-hidden border ${activeImage===i?'border-white':'border-white/10 opacity-60 hover:opacity-100'}`}><img src={img} alt={`${p.name} view ${i+1}`} loading="lazy" decoding="async" width="273" height="350" className="aspect-[273/350] w-full object-cover bg-white" style={{objectPosition:p.gender === "Men" ? "50% 72%" : "50% 50%"}}/></button>)}</div>
       </div>
       <div className="md:sticky md:top-28 md:self-start">
         <Link to={`/shop/${p.gender.toLowerCase()}`} className="text-[9px] uppercase tracking-[.25em] text-white/40">← {p.gender}'s underwear</Link>
@@ -314,10 +363,15 @@ function Checkout({cart,subtotal,clear}) {
     if(form.cvc.length!==3){setError("CVV must contain 3 numbers.");return;}
     const delivery=new Date(); delivery.setDate(delivery.getDate()+7);
     const created=new Date();
-    const newOrder={id:`NL-${Date.now().toString().slice(-8)}`,email:form.email,name:form.name.trim(),country:"United States",createdAt:created.toISOString(),deliveryDate:delivery.toISOString(),deliveryWindow:"10:00 AM – 2:00 PM",items:cart,total:subtotal};
+    const newOrder={id:`NL-${Date.now().toString().slice(-8)}`,email:form.email,name:form.name.trim(),country:"United States",createdAt:created.toISOString(),deliveryDate:delivery.toISOString(),deliveryWindow:"10:00 AM – 2:00 PM",items:cart.map(x=>({...x, product:{...x.product}})),total:subtotal};
     const raffleIntent = localStorage.getItem("noirline-raffle-intent") === "true";
     newOrder.raffleChance = raffleIntent;
     if (raffleIntent) localStorage.removeItem("noirline-raffle-intent");
+    let previousOrders = JSON.parse(localStorage.getItem("noirline-orders") || "[]");
+    const legacyLastOrder = JSON.parse(localStorage.getItem("noirline-last-order") || "null");
+    if (!previousOrders.length && legacyLastOrder?.id && legacyLastOrder.id !== newOrder.id) previousOrders = [legacyLastOrder];
+    const nextOrders = [newOrder, ...previousOrders.filter(x => x.id !== newOrder.id)];
+    localStorage.setItem("noirline-orders",JSON.stringify(nextOrders));
     localStorage.setItem("noirline-last-order",JSON.stringify(newOrder));
     setOrder(newOrder); setDone(true); clear();
   };
@@ -331,14 +385,52 @@ function Checkout({cart,subtotal,clear}) {
     <div className="grid grid-cols-2 gap-5"><Field label="Expiry"><input required autoComplete="cc-exp" inputMode="numeric" pattern="[0-9 /]{7}" maxLength="7" placeholder="MM / YY" value={form.expiry} onChange={e=>{setError("");setForm({...form,expiry:formatExpiry(e.target.value)})}}/></Field><Field label="CVV"><input required autoComplete="cc-csc" inputMode="numeric" pattern="[0-9]{3}" maxLength="3" placeholder="123" value={form.cvc} onChange={e=>{setError("");setForm({...form,cvc:sanitizeDigits(e.target.value,3)})}}/></Field></div></div>{error&&<p className="mt-5 border border-red-400/30 bg-red-400/10 px-4 py-3 text-xs text-red-200">{error}</p>}<button className="mt-8 w-full bg-white py-5 text-xs font-bold uppercase tracking-[.2em] text-black">Pay {money(subtotal)} — Demo</button><p className="mt-4 text-center text-[9px] leading-5 text-white/30">Demo only. No card data is transmitted or charged.</p></form><div className="h-fit border border-white/10 p-6"><p className="text-[10px] uppercase tracking-[.2em] text-white/45">Order summary</p>{cart.map(x=><div key={x.key} className="mt-5 flex justify-between gap-4 text-xs"><span className="text-white/65">{x.product.name} × {x.qty}</span><span>{money(x.product.price*x.qty)}</span></div>)}<div className="my-6 border-t border-white/10"/><div className="flex justify-between font-semibold"><span>Total</span><span>{money(subtotal)}</span></div><div className="mt-6 border-t border-white/10 pt-6 text-xs text-white/50">Shipping country: <span className="text-white">United States</span></div></div></div></main>
 }
 
-function OrderDashboard(){
-  const [order,setOrder]=useState(null);
-  useEffect(()=>setOrder(JSON.parse(localStorage.getItem("noirline-last-order")||"null")),[]);
-  if(!order) return <main className="mx-auto max-w-3xl px-5 py-24 text-center"><p className="text-[10px] uppercase tracking-[.3em] text-white/45">DELIVERY DASHBOARD</p><h1 className="mt-4 text-5xl font-black">No order yet.</h1><Link to="/shop/men" className="mt-8 inline-flex items-center gap-2 border border-white px-6 py-4 text-xs uppercase tracking-[.18em]">Start shopping <ArrowRight size={14}/></Link></main>;
-  const date=new Date(order.deliveryDate);
-  return <main className="mx-auto max-w-6xl px-5 py-12 md:px-10 md:py-20"><div className="flex flex-col justify-between gap-6 border-b border-white/10 pb-10 md:flex-row md:items-end"><div><p className="text-[10px] uppercase tracking-[.3em] text-white/45">ORDER / {order.id}</p><h1 className="mt-3 text-5xl font-black uppercase tracking-[-.04em]">Delivery dashboard.</h1></div><Link to="/" className="inline-flex items-center gap-2 text-xs uppercase tracking-[.18em] text-white/60 hover:text-white"><HomeIcon size={15}/> Home</Link></div><div className="mt-10 grid gap-5 md:grid-cols-3">{order.raffleChance && <div className="md:col-span-3 border border-white/15 bg-white p-7 text-black"><p className="text-[10px] uppercase tracking-[.2em] text-black/45">PS5 RAFFLE</p><p className="mt-3 text-2xl font-bold">You have 1 chance in the PS5 raffle.</p><p className="mt-2 text-sm text-black/55">This chance was awarded because this purchase started from the raffle feature.</p></div>}<div className="border border-white/10 p-7"><CalendarDays size={18}/><p className="mt-8 text-[10px] uppercase tracking-[.2em] text-white/40">Delivery date</p><p className="mt-2 text-2xl font-semibold">{date.toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric",year:"numeric"})}</p></div><div className="border border-white/10 p-7"><Truck size={18}/><p className="mt-8 text-[10px] uppercase tracking-[.2em] text-white/40">Delivery window</p><p className="mt-2 text-2xl font-semibold">{order.deliveryWindow}</p></div><div className="border border-white/10 p-7"><MapPin size={18}/><p className="mt-8 text-[10px] uppercase tracking-[.2em] text-white/40">Destination</p><p className="mt-2 text-2xl font-semibold">{order.country}</p></div></div><div className="mt-5 grid gap-5 lg:grid-cols-[1fr_320px]"><div className="lg:col-span-2 border border-white/10 p-7"><p className="text-[10px] uppercase tracking-[.2em] text-white/40">CURRENT LOGIN</p><p className="mt-3 text-xl font-semibold">{JSON.parse(localStorage.getItem("noirline-profile")||"null")?.name || order.name}</p><p className="mt-1 text-sm text-white/45">{JSON.parse(localStorage.getItem("noirline-profile")||"null")?.email || order.email}</p></div><div className="border border-white/10 p-7"><p className="text-[10px] uppercase tracking-[.2em] text-white/40">Products</p>{order.items.map(x=><div key={x.key} className="flex items-center justify-between border-b border-white/10 py-5 text-sm"><span>{x.product.name} × {x.qty}</span><span>{money(x.product.price*x.qty)}</span></div>)}</div><div className="border border-white/10 p-7"><p className="text-[10px] uppercase tracking-[.2em] text-white/40">Status</p><div className="mt-7 flex items-center gap-3 text-emerald-400"><CheckCircle2 size={18}/> Payment reviewed</div><p className="mt-5 text-sm leading-6 text-white/50">Your demo order is scheduled for delivery within one week.</p><div className="mt-7 border-t border-white/10 pt-6 text-xs text-white/45">Email<br/><span className="mt-1 block text-white">{order.email}</span></div><Link to="/" className="mt-7 flex items-center justify-center gap-2 bg-white px-5 py-4 text-xs font-bold uppercase tracking-[.18em] text-black"><HomeIcon size={14}/> Back home</Link></div></div></main>
+function getOrders(){
+  const saved = JSON.parse(localStorage.getItem("noirline-orders") || "[]");
+  if(saved.length) return saved;
+  const last = JSON.parse(localStorage.getItem("noirline-last-order") || "null");
+  return last ? [last] : [];
 }
 
+function OrderSummaryCard({order, compact=false}){
+  const date = new Date(order.deliveryDate);
+  const created = new Date(order.createdAt);
+  return <section className="border border-white/10 p-7 md:p-8">
+    <div className="flex flex-col justify-between gap-4 border-b border-white/10 pb-6 md:flex-row md:items-end">
+      <div><p className="text-[10px] uppercase tracking-[.25em] text-white/40">ORDER / {order.id}</p><h2 className="mt-2 text-2xl font-bold">Purchase dashboard</h2><p className="mt-2 text-xs text-white/45">Placed {created.toLocaleString("en-US",{dateStyle:"medium",timeStyle:"short"})}</p></div>
+      <div className="text-left md:text-right"><p className="text-[10px] uppercase tracking-[.2em] text-white/40">Total</p><p className="mt-1 text-2xl font-semibold">{money(order.total)}</p></div>
+    </div>
+    <div className="mt-7 grid gap-4 md:grid-cols-3">
+      <div className="border border-white/10 p-5"><CalendarDays size={17}/><p className="mt-5 text-[10px] uppercase tracking-[.2em] text-white/40">Delivery date</p><p className="mt-2 text-lg font-semibold">{date.toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric",year:"numeric"})}</p></div>
+      <div className="border border-white/10 p-5"><Truck size={17}/><p className="mt-5 text-[10px] uppercase tracking-[.2em] text-white/40">Delivery window</p><p className="mt-2 text-lg font-semibold">{order.deliveryWindow}</p></div>
+      <div className="border border-white/10 p-5"><MapPin size={17}/><p className="mt-5 text-[10px] uppercase tracking-[.2em] text-white/40">Destination</p><p className="mt-2 text-lg font-semibold">{order.country}</p></div>
+    </div>
+    {order.raffleChance && <div className="mt-4 border border-white/15 bg-white p-5 text-black"><p className="text-[10px] uppercase tracking-[.2em] text-black/45">PS5 RAFFLE</p><p className="mt-2 text-lg font-bold">You have 1 chance in the PS5 raffle.</p></div>}
+    <div className="mt-4 grid gap-4 lg:grid-cols-[1fr_280px]">
+      <div className="border border-white/10 p-5"><p className="text-[10px] uppercase tracking-[.2em] text-white/40">Products</p>{order.items.map(x=><div key={x.key} className="flex items-center justify-between gap-5 border-b border-white/10 py-4 text-sm last:border-b-0"><span>{x.product.name} × {x.qty}<span className="ml-2 text-[10px] uppercase tracking-[.12em] text-white/35">{x.product.gender} / {x.size}</span></span><span>{money(x.product.price*x.qty)}</span></div>)}</div>
+      <div className="border border-white/10 p-5"><p className="text-[10px] uppercase tracking-[.2em] text-white/40">Status</p><div className="mt-5 flex items-center gap-3 text-emerald-400"><CheckCircle2 size={18}/> Payment reviewed</div><div className="mt-6 border-t border-white/10 pt-5 text-xs text-white/45">Customer<br/><span className="mt-1 block text-white">{order.name}</span><span className="mt-1 block text-white/55">{order.email}</span></div><Link to={`/order-dashboard?id=${encodeURIComponent(order.id)}`} className="mt-6 flex items-center justify-center gap-2 border border-white/20 px-5 py-4 text-xs font-bold uppercase tracking-[.16em] hover:border-white/50">Open dashboard <ArrowRight size={14}/></Link></div>
+    </div>
+  </section>
+}
+
+function Orders(){
+  const [orders,setOrders]=useState([]);
+  useEffect(()=>setOrders(getOrders()),[]);
+  return <main className="mx-auto max-w-6xl px-5 py-12 md:px-10 md:py-20"><div className="flex flex-col justify-between gap-6 border-b border-white/10 pb-10 md:flex-row md:items-end"><div><p className="text-[10px] uppercase tracking-[.3em] text-white/45">ACCOUNT / ORDERS</p><h1 className="mt-3 text-5xl font-black uppercase tracking-[-.04em] md:text-7xl">Your orders.</h1><p className="mt-5 max-w-2xl text-sm leading-6 text-white/50">Every completed purchase is kept here. Two or three purchases made close together remain separate orders with their own dates, products, totals and delivery information.</p></div><Link to="/" className="inline-flex items-center gap-2 text-xs uppercase tracking-[.18em] text-white/60 hover:text-white"><HomeIcon size={15}/> Back to Home</Link></div>{!orders.length?<div className="py-24 text-center"><p className="text-sm text-white/45">You have no completed orders yet.</p><Link to="/shop/men" className="mt-7 inline-flex border border-white px-6 py-4 text-xs uppercase tracking-[.18em]">Start shopping</Link></div>:<div className="mt-10 space-y-5">{orders.map(order=><OrderSummaryCard key={order.id} order={order}/>)}</div>}</main>
+}
+
+function OrderDashboard(){
+  const [searchParams]=useSearchParams();
+  const [order,setOrder]=useState(null);
+  useEffect(()=>{
+    const all=getOrders();
+    const id=searchParams.get("id");
+    setOrder(id ? all.find(x=>x.id===id) || all[0] : all[0]);
+  },[searchParams]);
+  if(!order) return <main className="mx-auto max-w-3xl px-5 py-24 text-center"><p className="text-[10px] uppercase tracking-[.3em] text-white/45">DELIVERY DASHBOARD</p><h1 className="mt-4 text-5xl font-black">No order yet.</h1><Link to="/shop/men" className="mt-8 inline-flex items-center gap-2 border border-white px-6 py-4 text-xs uppercase tracking-[.18em]">Start shopping <ArrowRight size={14}/></Link></main>;
+  const all=getOrders();
+  return <main className="mx-auto max-w-6xl px-5 py-12 md:px-10 md:py-20"><div className="flex flex-col justify-between gap-6 border-b border-white/10 pb-10 md:flex-row md:items-end"><div><p className="text-[10px] uppercase tracking-[.3em] text-white/45">ORDER / {order.id}</p><h1 className="mt-3 text-5xl font-black uppercase tracking-[-.04em]">Delivery dashboard.</h1><p className="mt-4 text-sm text-white/45">This dashboard shows the complete information for the selected purchase.</p></div><div className="flex flex-wrap gap-4"><Link to="/orders" className="inline-flex items-center gap-2 border border-white/20 px-5 py-4 text-xs uppercase tracking-[.18em]">All Orders</Link><Link to="/" className="inline-flex items-center gap-2 text-xs uppercase tracking-[.18em] text-white/60 hover:text-white"><HomeIcon size={15}/> Home</Link></div></div><div className="mt-10"><OrderSummaryCard order={order}/></div>{all.length>1&&<div className="mt-10 border-t border-white/10 pt-10"><p className="text-[10px] uppercase tracking-[.25em] text-white/40">OTHER PURCHASES</p><div className="mt-5 grid gap-3 md:grid-cols-2">{all.filter(x=>x.id!==order.id).map(x=><Link key={x.id} to={`/order-dashboard?id=${encodeURIComponent(x.id)}`} className="border border-white/10 p-5 transition hover:border-white/40"><p className="text-xs uppercase tracking-[.16em]">{x.id}</p><p className="mt-2 text-sm">{new Date(x.createdAt).toLocaleString("en-US",{dateStyle:"medium",timeStyle:"short"})}</p><p className="mt-2 text-sm text-white/50">{money(x.total)} · {x.items.length} line item{x.items.length===1?"":"s"}</p></Link>)}</div></div>}</main>
+}
 function Field({label,children}){return <label className="block text-[9px] uppercase tracking-[.18em] text-white/45">{label}<div className="mt-2 [&>input]:w-full [&>input]:border [&>input]:border-white/15 [&>input]:bg-black [&>input]:px-4 [&>input]:py-3 [&>input]:text-sm [&>input]:text-white [&>input]:outline-none [&>input]:focus:border-white">{children}</div></label>}
 
 function About(){return <main className="mx-auto max-w-5xl px-5 py-16 md:px-10 md:py-28"><p className="text-[10px] uppercase tracking-[.3em] text-white/45">ABOUT NOIRLINE</p><h1 className="mt-4 max-w-4xl text-6xl font-black uppercase leading-[.9] tracking-[-.05em] md:text-8xl">Underwear,<br/>reframed.</h1><p className="mt-10 max-w-2xl text-lg leading-8 text-white/60">NOIRLINE is a fictional, design-led underwear label built around a simple idea: the essentials deserve the same attention as everything worn above them.</p><div className="mt-20 grid gap-10 border-t border-white/10 pt-10 md:grid-cols-3">{[["01","Quiet design","A restrained visual language where fit, fabric and proportion do the talking."],["02","Two wardrobes","Women and men have separate catalogs, categories and product IDs inside one monochrome storefront."],["03","Demo by design","This project is a fully interactive storefront prototype, including a simulated checkout."]].map(x=><div key={x[0]}><span className="text-xs text-white/35">{x[0]}</span><h2 className="mt-8 text-2xl font-semibold">{x[1]}</h2><p className="mt-4 text-sm leading-6 text-white/50">{x[2]}</p></div>)}</div></main>}
@@ -369,6 +461,6 @@ function NotFound(){return <main className="px-5 py-32 text-center"><h1 classNam
 
 function Footer(){return <footer className="border-t border-white/10 bg-[#050505]"><div className="mx-auto grid max-w-7xl gap-12 px-5 py-14 md:grid-cols-[1.4fr_1fr_1fr_1fr] md:px-10"><div><div className="text-lg font-black tracking-[.35em]">NOIRLINE</div><p className="mt-5 max-w-xs text-sm leading-6 text-white/45">A monochrome underwear storefront prototype. Built to feel editorial, fast and intentionally simple.</p></div><div><p className="text-[9px] uppercase tracking-[.25em] text-white/35">Shop</p><div className="mt-5 grid gap-3 text-xs text-white/65"><Link to="/shop/women">Women's underwear</Link><Link to="/shop/men">Men's underwear</Link><Link to="/search?q=cotton">Cotton</Link><Link to="/search?q=seamless">Seamless</Link></div></div><div><p className="text-[9px] uppercase tracking-[.25em] text-white/35">Info</p><div className="mt-5 grid gap-3 text-xs text-white/65"><Link to="/about">About us</Link><Link to="/contact">Contact us</Link><Link to="/account">Account</Link><Link to="/cart">Cart</Link></div></div><div><p className="text-[9px] uppercase tracking-[.25em] text-white/35">Newsletter</p><p className="mt-5 text-xs leading-5 text-white/45">Demo signup — no data is stored.</p><div className="mt-4 flex border-b border-white/20"><input placeholder="Email address" className="w-full bg-transparent py-2 text-xs outline-none"/><button className="text-xs uppercase tracking-[.15em]">Join</button></div></div></div><div className="border-t border-white/10 px-5 py-5 text-center text-[9px] uppercase tracking-[.18em] text-white/25 md:px-10">© 2026 NOIRLINE / Fictional demo storefront / No real payments</div></footer>}
 
-function MobileBar({count}){return <div className="fixed bottom-0 left-0 right-0 z-40 grid grid-cols-3 border-t border-white/15 bg-black/95 py-3 backdrop-blur md:hidden"><Link to="/" className="text-center text-[9px] uppercase tracking-[.18em]">Home</Link><Link to="/account" className="text-center text-[9px] uppercase tracking-[.18em]">Account</Link><Link to="/cart" className="text-center text-[9px] uppercase tracking-[.18em]">Cart {count?`(${count})`:""}</Link></div>}
+function MobileBar({count}){return <div className="fixed bottom-0 left-0 right-0 z-40 grid grid-cols-4 border-t border-white/15 bg-black/95 py-3 backdrop-blur md:hidden"><Link to="/" className="text-center text-[9px] uppercase tracking-[.18em]">Home</Link><Link to="/account" className="text-center text-[9px] uppercase tracking-[.18em]">Account</Link><Link to="/account?mode=register" className="text-center text-[9px] uppercase tracking-[.18em]">Register</Link><Link to="/cart" className="text-center text-[9px] uppercase tracking-[.18em]">Cart {count?`(${count})`:""}</Link></div>}
 
 createRoot(document.getElementById("root")).render(<BrowserRouter><App/></BrowserRouter>);
