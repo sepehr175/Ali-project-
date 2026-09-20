@@ -1,12 +1,12 @@
 import React, { useEffect, useLayoutEffect, useMemo, useState } from "react";
 import { createRoot } from "react-dom/client";
-import { BrowserRouter, Routes, Route, Link, useNavigate, useLocation, useParams, useSearchParams } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Link, Navigate, useNavigate, useLocation, useParams, useSearchParams } from "react-router-dom";
 import { Search, ShoppingBag, UserRound, Menu, X, ArrowRight, ChevronDown, Minus, Plus, Trash2, CreditCard, CheckCircle2, Instagram, Mail, MapPin, Truck, CalendarDays, Home as HomeIcon, Sparkles } from "lucide-react";
 import { products } from "./products";
 import "./index.css";
 
 const money = (n) => `€${n.toFixed(2)}`;
-const CATALOG_VERSION = "underwear-only-v10";
+const CATALOG_VERSION = "men-only-v11";
 
 // Stop the browser from restoring the previous scroll position on its own; we control it below.
 if (typeof window !== "undefined" && "scrollRestoration" in window.history) {
@@ -80,7 +80,6 @@ function App() {
         <Link to="/" className="text-lg font-black tracking-[.35em]">NOIRLINE</Link>
         <nav className="flex items-center gap-8 text-[11px] uppercase tracking-[.18em]">
           <Link className="underline-grow" to="/">Home</Link>
-          <Link className="underline-grow" to="/shop/women">Women</Link>
           <Link className="underline-grow" to="/shop/men">Men</Link>
           <Link className="underline-grow" to="/orders">Orders</Link>
           <Link className="underline-grow" to="/raffle">Raffle</Link>
@@ -109,7 +108,6 @@ function App() {
         <div className="flex min-h-full flex-col">
           <div className="grid gap-7 text-sm uppercase tracking-[.2em]">
             <Link onClick={()=>setMenu(false)} to="/">Home</Link>
-            <Link onClick={()=>setMenu(false)} to="/shop/women">Women</Link>
             <Link onClick={()=>setMenu(false)} to="/shop/men">Men</Link>
             <Link onClick={()=>setMenu(false)} to="/orders">Orders</Link>
             <Link onClick={()=>setMenu(false)} to="/raffle">Raffle</Link>
@@ -129,6 +127,7 @@ function App() {
 
     <Routes>
       <Route path="/" element={<Home/>}/>
+      <Route path="/shop" element={<Navigate to="/shop/men" replace/>}/>
       <Route path="/shop/:gender" element={<Shop/>}/>
       <Route path="/product/:id" element={<Product add={add}/>}/>
       <Route path="/search" element={<SearchPage add={add}/>}/>
@@ -150,9 +149,11 @@ function App() {
 
 function Home() {
   useReveal(["home"]);
+  // Hero and tiles use products that are NOT in "The Edit" grid (m1-m6), so no photo repeats on this page.
+  const photo = (id) => products.find(p=>p.id===id)?.image;
   return <>
     <section className="relative min-h-[78vh] overflow-hidden">
-      <img src={products[1].image} className="hero-pulse absolute inset-0 h-full w-full object-cover opacity-55" alt="NOIRLINE editorial fashion"/>
+      <img src={photo("m30")} className="hero-pulse absolute inset-0 h-full w-full object-cover opacity-55" alt="NOIRLINE editorial fashion"/>
       <div className="absolute inset-0 bg-gradient-to-r from-black via-black/45 to-black/10"/>
       <div className="relative flex min-h-[78vh] max-w-7xl items-end px-5 pb-16 md:px-10 md:pb-24">
         <div className="max-w-2xl fade-up">
@@ -160,21 +161,21 @@ function Home() {
           <h1 className="text-5xl font-black uppercase leading-[.88] tracking-[-.04em] md:text-8xl">Nothing<br/>extra.</h1>
           <p className="mt-7 max-w-md text-sm leading-6 text-white/70 md:text-base">Modern essentials for every body. Quiet silhouettes, considered fabrics, and a monochrome point of view.</p>
           <div className="mt-8 flex flex-wrap gap-3">
-            <Link to="/shop/women" className="group flex items-center gap-5 bg-white px-6 py-4 text-xs font-bold uppercase tracking-[.18em] text-black">Shop women <ArrowRight size={16} className="transition group-hover:translate-x-1"/></Link>
-            <Link to="/shop/men" className="group flex items-center gap-5 border border-white/50 px-6 py-4 text-xs font-bold uppercase tracking-[.18em]">Shop men <ArrowRight size={16} className="transition group-hover:translate-x-1"/></Link>
+            <Link to="/shop/men" className="group flex items-center gap-5 bg-white px-6 py-4 text-xs font-bold uppercase tracking-[.18em] text-black">Shop men <ArrowRight size={16} className="transition group-hover:translate-x-1"/></Link>
+            <Link to="/shop/men?category=boxer-brief" className="group flex items-center gap-5 border border-white/50 px-6 py-4 text-xs font-bold uppercase tracking-[.18em]">Boxer briefs <ArrowRight size={16} className="transition group-hover:translate-x-1"/></Link>
           </div>
         </div>
       </div>
     </section>
 
     <div className="overflow-hidden border-y border-white/10 py-4 text-[10px] uppercase tracking-[.32em] text-white/55">
-      <div className="marquee flex w-max gap-12"><span>SOFT / SHARP / SIMPLE</span><span>48 ESSENTIALS</span><span>BLACK & WHITE</span><span>DESIGNED FOR EVERYDAY</span><span>SOFT / SHARP / SIMPLE</span><span>48 ESSENTIALS</span><span>BLACK & WHITE</span><span>DESIGNED FOR EVERYDAY</span></div>
+      <div className="marquee flex w-max gap-12"><span>SOFT / SHARP / SIMPLE</span><span>50 ESSENTIALS</span><span>BLACK & WHITE</span><span>DESIGNED FOR EVERYDAY</span><span>SOFT / SHARP / SIMPLE</span><span>50 ESSENTIALS</span><span>BLACK & WHITE</span><span>DESIGNED FOR EVERYDAY</span></div>
     </div>
 
     <section className="mx-auto max-w-7xl px-5 py-20 md:px-10 md:py-28">
       <div className="grid gap-8 md:grid-cols-2">
-        <EditorialTile title="Women / Underwear" to="/shop/women" image={products[7].image} kicker="Soft lace / seamless / cotton"/>
-        <EditorialTile title="My Underwear" to="/shop/men" image={products.find(p=>p.gender === "Men")?.image} kicker="Men / boxer briefs / briefs / jockstraps"/>
+        <EditorialTile title="Boxer Briefs" to="/shop/men?category=boxer-brief" image={photo("m27")} kicker="Everyday / seamless / performance"/>
+        <EditorialTile title="Briefs" to="/shop/men?category=brief" image={photo("m40")} kicker="Classic / modal / low-rise"/>
       </div>
     </section>
 
@@ -183,13 +184,13 @@ function Home() {
         {[
           ["01","Engineered comfort","Every silhouette is built around movement, softness and clean lines."],
           ["02","One monochrome world","A strictly black-and-white visual system keeps the collection focused."],
-          ["03","Made to rotate","48 core styles across women's and men's underwear categories."]
+          ["03","Made to rotate","50 core styles across boxer briefs, briefs, trunks, boxers and jockstraps."]
         ].map(([n,t,d])=><div key={n} className="reveal border-b border-white/10 p-7 md:border-b-0 md:border-r md:p-10 last:md:border-r-0"><span className="text-xs text-white/40">{n}</span><h3 className="mt-12 text-2xl font-semibold">{t}</h3><p className="mt-4 text-sm leading-6 text-white/55">{d}</p></div>)}
       </div>
     </section>
 
     <section className="mx-auto max-w-7xl px-5 py-20 md:px-10 md:py-28">
-      <div className="flex items-end justify-between"><div><p className="text-[10px] uppercase tracking-[.28em] text-white/45">THE EDIT</p><h2 className="mt-3 text-4xl font-bold tracking-tight md:text-6xl">Our products.</h2></div><Link to="/shop/women" className="hidden text-xs uppercase tracking-[.2em] md:block">View all →</Link></div>
+      <div className="flex items-end justify-between"><div><p className="text-[10px] uppercase tracking-[.28em] text-white/45">THE EDIT</p><h2 className="mt-3 text-4xl font-bold tracking-tight md:text-6xl">Our products.</h2></div><Link to="/shop/men" className="hidden text-xs uppercase tracking-[.2em] md:block">View all →</Link></div>
       <ProductGrid items={products.slice(0,6)} />
     </section>
 
@@ -197,19 +198,19 @@ function Home() {
       <div className="mx-auto grid max-w-7xl gap-0 md:grid-cols-[1.05fr_.95fr]">
         <div className="reveal flex min-h-[420px] flex-col justify-between p-8 md:p-14">
           <div><p className="text-[10px] uppercase tracking-[.3em] text-black/45">THE NOIRLINE ROUTINE</p><h2 className="mt-4 max-w-xl text-5xl font-black uppercase leading-[.9] tracking-[-.05em] md:text-7xl">Build your<br/>daily rotation.</h2><p className="mt-7 max-w-lg text-sm leading-7 text-black/60">Choose a few essentials, keep the palette simple, and make getting dressed easier. Explore the collection by wardrobe or by silhouette.</p></div>
-          <div className="mt-10 flex flex-wrap gap-3"><Link to="/shop/women" className="bg-black px-6 py-4 text-xs font-bold uppercase tracking-[.18em] text-white">Women</Link><Link to="/shop/men" className="border border-black px-6 py-4 text-xs font-bold uppercase tracking-[.18em]">Men</Link></div>
+          <div className="mt-10 flex flex-wrap gap-3"><Link to="/shop/men" className="bg-black px-6 py-4 text-xs font-bold uppercase tracking-[.18em] text-white">Shop men</Link><Link to="/shop/men?category=performance" className="border border-black px-6 py-4 text-xs font-bold uppercase tracking-[.18em]">Performance</Link></div>
         </div>
         <div className="grid grid-cols-2 border-t border-black/10 md:border-l md:border-t-0">
-          {[['01','Everyday','Soft essentials for the daily rotation.'],['02','Statement','Lace, mesh and sharper silhouettes.'],['03','Minimal','Clean lines with no unnecessary detail.'],['04','Performance','Supportive pieces for movement.']].map(([n,t,d])=><div key={n} className="reveal border-b border-black/10 p-7 last:border-b-0 even:border-l md:p-10"><span className="text-xs text-black/35">{n}</span><h3 className="mt-12 text-2xl font-semibold">{t}</h3><p className="mt-4 text-sm leading-6 text-black/55">{d}</p></div>)}
+          {[['01','Everyday','Soft essentials for the daily rotation.'],['02','Statement','Mesh, rib and sharper silhouettes.'],['03','Minimal','Clean lines with no unnecessary detail.'],['04','Performance','Supportive pieces for movement.']].map(([n,t,d])=><div key={n} className="reveal border-b border-black/10 p-7 last:border-b-0 even:border-l md:p-10"><span className="text-xs text-black/35">{n}</span><h3 className="mt-12 text-2xl font-semibold">{t}</h3><p className="mt-4 text-sm leading-6 text-black/55">{d}</p></div>)}
         </div>
       </div>
     </section>
 
     <section className="mx-auto max-w-7xl px-5 py-20 md:px-10 md:py-28">
       <div className="grid gap-4 md:grid-cols-3">
-        <Link to="/shop/women" className="reveal group border border-white/10 p-7 transition hover:-translate-y-2 hover:border-white/40"><Sparkles size={18}/><h3 className="mt-16 text-2xl font-semibold">New silhouettes</h3><p className="mt-3 text-sm leading-6 text-white/45">Discover the newest pieces in the women’s and men’s edits.</p><span className="mt-8 inline-flex items-center gap-2 text-[10px] uppercase tracking-[.18em]">Explore <ArrowRight size={14}/></span></Link>
+        <Link to="/shop/men" className="reveal group border border-white/10 p-7 transition hover:-translate-y-2 hover:border-white/40"><Sparkles size={18}/><h3 className="mt-16 text-2xl font-semibold">New silhouettes</h3><p className="mt-3 text-sm leading-6 text-white/45">Discover the newest pieces in the men’s edit.</p><span className="mt-8 inline-flex items-center gap-2 text-[10px] uppercase tracking-[.18em]">Explore <ArrowRight size={14}/></span></Link>
         <Link to="/shop/men" className="reveal group border border-white/10 p-7 transition hover:-translate-y-2 hover:border-white/40"><Truck size={18}/><h3 className="mt-16 text-2xl font-semibold">Easy delivery</h3><p className="mt-3 text-sm leading-6 text-white/45">A simple demo checkout followed by a clear delivery dashboard.</p><span className="mt-8 inline-flex items-center gap-2 text-[10px] uppercase tracking-[.18em]">Shop men <ArrowRight size={14}/></span></Link>
-        <Link to="/about" className="reveal group border border-white/10 p-7 transition hover:-translate-y-2 hover:border-white/40"><CheckCircle2 size={18}/><h3 className="mt-16 text-2xl font-semibold">Made to rotate</h3><p className="mt-3 text-sm leading-6 text-white/45">48 focused styles, split cleanly across the two wardrobes.</p><span className="mt-8 inline-flex items-center gap-2 text-[10px] uppercase tracking-[.18em]">About NOIRLINE <ArrowRight size={14}/></span></Link>
+        <Link to="/about" className="reveal group border border-white/10 p-7 transition hover:-translate-y-2 hover:border-white/40"><CheckCircle2 size={18}/><h3 className="mt-16 text-2xl font-semibold">Made to rotate</h3><p className="mt-3 text-sm leading-6 text-white/45">50 focused styles, built around one clean men’s wardrobe.</p><span className="mt-8 inline-flex items-center gap-2 text-[10px] uppercase tracking-[.18em]">About NOIRLINE <ArrowRight size={14}/></span></Link>
       </div>
     </section>
   </>
@@ -225,11 +226,20 @@ function EditorialTile({title,to,image,kicker}) {
 
 function Shop() {
   const {gender: rawGender} = useParams();
-  const gender = rawGender?.toLowerCase() === "men" ? "men" : "women";
-  const [category,setCategory]=useState("all");
+  if (rawGender?.toLowerCase() !== "men") return <Navigate to="/shop/men" replace/>;
+  return <MenShop/>;
+}
+
+function MenShop() {
+  const gender = "men";
+  const {key} = useLocation();
+  const [searchParams] = useSearchParams();
+  const genderItems = useMemo(()=>products.filter(p=>p.gender.toLowerCase()===gender),[]);
+  const categoryFromUrl = () => { const c = searchParams.get("category"); return c && genderItems.some(p=>p.category===c) ? c : "all"; };
+  const [category,setCategory]=useState(categoryFromUrl);
   const [sort,setSort]=useState("featured");
-  useEffect(()=>setCategory("all"),[gender]);
-  const genderItems=useMemo(()=>products.filter(p=>p.gender.toLowerCase()===gender),[gender]);
+  // Re-apply the ?category= filter on every navigation (e.g. clicking "Men" again resets to all styles).
+  useEffect(()=>setCategory(categoryFromUrl()),[key]);
   const items=useMemo(()=>{
     let x=category==="all" ? [...genderItems] : genderItems.filter(p=>p.category===category);
     if(sort==="price-low") x.sort((a,b)=>a.price-b.price);
@@ -240,7 +250,7 @@ function Shop() {
   useReveal([gender, category, sort, items.length]);
   return <main className="mx-auto max-w-7xl px-5 py-12 md:px-10 md:py-20">
     <div className="flex flex-col justify-between gap-8 border-b border-white/10 pb-10 md:flex-row md:items-end">
-      <div><p className="text-[10px] uppercase tracking-[.3em] text-white/45">SHOP / {gender}</p><h1 className="mt-3 text-5xl font-black uppercase tracking-[-.04em] md:text-7xl">{gender}'s underwear</h1><p className="mt-5 max-w-xl text-sm leading-6 text-white/55">A dedicated {gender}'s catalog. This page only queries {gender}'s products, so women and men never mix in the category view.</p></div>
+      <div><p className="text-[10px] uppercase tracking-[.3em] text-white/45">SHOP / {gender}</p><h1 className="mt-3 text-5xl font-black uppercase tracking-[-.04em] md:text-7xl">{gender}'s underwear</h1><p className="mt-5 max-w-xl text-sm leading-6 text-white/55">The full men's collection: boxer briefs, briefs, trunks, woven boxers, jockstraps and performance styles in one monochrome edit.</p></div>
       <div className="flex items-center gap-3"><span className="text-xs text-white/45">{items.length} styles</span><select value={sort} onChange={e=>setSort(e.target.value)} className="border border-white/15 bg-black px-4 py-3 text-xs uppercase tracking-[.12em] outline-none"><option value="featured">Featured</option><option value="price-low">Price: low</option><option value="price-high">Price: high</option></select></div>
     </div>
     <div className="no-scrollbar flex gap-2 overflow-x-auto py-6">
@@ -325,17 +335,17 @@ function SearchPage({add}) {
   return <main className="mx-auto min-h-[60vh] max-w-7xl px-5 py-12 md:px-10 md:py-20">
     <p className="text-[10px] uppercase tracking-[.3em] text-white/45">SEARCH / {q || "ALL PRODUCTS"}</p>
     <div className="mt-3 flex flex-col gap-5 border-b border-white/10 pb-8 md:flex-row md:items-end md:justify-between">
-      <div><h1 className="text-5xl font-black md:text-7xl">{q ? `“${q}”` : "Search products"}</h1><p className="mt-5 text-sm text-white/45">{results.length} matching products. Women and men keep their original catalog identity and image.</p></div>
-      <Link to="/shop/women" className="text-[10px] uppercase tracking-[.18em] text-white/50 hover:text-white">Women / Men collections →</Link>
+      <div><h1 className="text-5xl font-black md:text-7xl">{q ? `“${q}”` : "Search products"}</h1><p className="mt-5 text-sm text-white/45">{results.length} matching products.</p></div>
+      <Link to="/shop/men" className="text-[10px] uppercase tracking-[.18em] text-white/50 hover:text-white">Men's collection →</Link>
     </div>
-    {results.length ? <ProductGrid items={results}/> : <div className="py-24 text-center text-white/45"><Search className="mx-auto mb-5 opacity-30"/><p>No matches for “{q}”.</p><p className="mt-3 text-xs">Try cotton, brief, boxer, bra, lace, seamless, jockstrap or stockings.</p></div>}
+    {results.length ? <ProductGrid items={results}/> : <div className="py-24 text-center text-white/45"><Search className="mx-auto mb-5 opacity-30"/><p>No matches for “{q}”.</p><p className="mt-3 text-xs">Try cotton, brief, boxer, trunk, seamless, mesh or jockstrap.</p></div>}
   </main>
 }
 
 function Cart({cart,update,subtotal,clear}) {
   const navigate=useNavigate();
   return <main className="mx-auto max-w-6xl px-5 py-12 md:px-10 md:py-20"><div className="flex items-end justify-between border-b border-white/10 pb-8"><div><p className="text-[10px] uppercase tracking-[.3em] text-white/45">BAG</p><h1 className="mt-3 text-5xl font-black tracking-tight">Your cart.</h1></div>{cart.length>0&&<button onClick={clear} className="text-[10px] uppercase tracking-[.15em] text-white/40 hover:text-white">Clear all</button>}</div>
-    {!cart.length?<div className="py-28 text-center"><ShoppingBag className="mx-auto mb-5 opacity-30"/><p className="text-white/50">Your bag is empty.</p><Link to="/shop/women" className="mt-6 inline-block border border-white px-6 py-4 text-xs uppercase tracking-[.18em]">Shop the collection</Link></div>
+    {!cart.length?<div className="py-28 text-center"><ShoppingBag className="mx-auto mb-5 opacity-30"/><p className="text-white/50">Your bag is empty.</p><Link to="/shop/men" className="mt-6 inline-block border border-white px-6 py-4 text-xs uppercase tracking-[.18em]">Shop the collection</Link></div>
     :<div className="grid gap-12 pt-10 lg:grid-cols-[1fr_360px]"><div className="divide-y divide-white/10">{cart.map(x=><div key={x.key} className="flex gap-5 py-5 first:pt-0"><img src={x.product.image} alt="" className="h-32 w-24 object-contain bg-white"/><div className="flex flex-1 justify-between gap-5"><div><p className="text-sm">{x.product.name}</p><p className="mt-2 text-[10px] uppercase tracking-[.16em] text-white/40">{x.product.gender} · Size {x.size}</p><div className="mt-5 flex items-center border border-white/15"><button onClick={()=>update(x.key,x.qty-1)} className="p-2"><Minus size={12}/></button><span className="w-8 text-center text-xs">{x.qty}</span><button onClick={()=>update(x.key,x.qty+1)} className="p-2"><Plus size={12}/></button></div></div><div className="text-right"><p className="text-sm">{money(x.product.price*x.qty)}</p><button onClick={()=>update(x.key,0)} className="mt-5 text-white/35 hover:text-white"><Trash2 size={15}/></button></div></div></div>)}</div>
       <div className="h-fit border border-white/10 p-6"><p className="text-[10px] uppercase tracking-[.2em] text-white/45">Summary</p><div className="mt-7 flex justify-between text-sm"><span>Subtotal</span><span>{money(subtotal)}</span></div><div className="mt-3 flex justify-between text-sm text-white/45"><span>Shipping</span><span>Free</span></div><div className="my-6 border-t border-white/10"/><div className="flex justify-between text-lg font-semibold"><span>Total</span><span>{money(subtotal)}</span></div><button onClick={()=>navigate("/checkout")} className="mt-7 w-full bg-white py-4 text-xs font-bold uppercase tracking-[.18em] text-black">Proceed to checkout</button><p className="mt-4 text-center text-[9px] uppercase tracking-[.13em] text-white/30">Demo payment — no real charge</p></div>
     </div>}
@@ -377,7 +387,7 @@ function Checkout({cart,subtotal,clear}) {
   };
 
   if(done) return <main className="mx-auto max-w-5xl px-5 py-16 md:px-10 md:py-24"><section className="rounded-[2rem] bg-emerald-500 px-7 py-16 text-center text-black md:px-16 md:py-24"><CheckCircle2 size={56} className="mx-auto"/><p className="mt-7 text-[10px] font-bold uppercase tracking-[.3em]">Payment Reviewed</p><h1 className="mt-4 text-5xl font-black uppercase tracking-[-.05em] md:text-7xl">Payment Reviewed.</h1><p className="mx-auto mt-6 max-w-xl text-sm leading-7 text-black/70">Your demo payment has been reviewed successfully. Your product is scheduled to arrive within one week.</p>{order?.raffleChance && <p className="mx-auto mt-5 max-w-xl rounded-full border border-black/20 px-5 py-3 text-xs font-bold uppercase tracking-[.14em]">You have 1 chance in the PS5 raffle.</p>}<div className="mt-10 flex flex-wrap justify-center gap-3"><Link to="/order-dashboard" className="inline-flex items-center gap-2 bg-black px-7 py-4 text-xs font-bold uppercase tracking-[.18em] text-white">Delivery dashboard <ArrowRight size={15}/></Link><Link to="/" className="inline-flex items-center gap-2 border border-black/30 px-7 py-4 text-xs font-bold uppercase tracking-[.18em]">Home <HomeIcon size={15}/></Link></div></section></main>;
-  if(!cart.length) return <main className="mx-auto max-w-2xl px-5 py-24 text-center"><h1 className="text-4xl font-bold">Nothing to checkout.</h1><Link to="/shop/women" className="mt-7 inline-block underline">Continue shopping</Link></main>;
+  if(!cart.length) return <main className="mx-auto max-w-2xl px-5 py-24 text-center"><h1 className="text-4xl font-bold">Nothing to checkout.</h1><Link to="/shop/men" className="mt-7 inline-block underline">Continue shopping</Link></main>;
   return <main className="mx-auto max-w-6xl px-5 py-12 md:px-10 md:py-20"><div className="mb-10"><p className="text-[10px] uppercase tracking-[.3em] text-white/45">SECURE CHECKOUT / DEMO</p><h1 className="mt-3 text-5xl font-black">Payment.</h1></div><div className="grid gap-10 lg:grid-cols-[1fr_360px]"><form onSubmit={submit} className="border border-white/10 p-6 md:p-8"><div className="flex items-center gap-3 border-b border-white/10 pb-6"><CreditCard size={18}/><span className="text-xs uppercase tracking-[.18em]">Demo card gateway</span></div><div className="mt-7 grid gap-5">
     <Field label="Email"><input required type="email" autoComplete="email" inputMode="email" value={form.email} onChange={e=>{setError("");setForm({...form,email:e.target.value})}} placeholder="you@example.com"/></Field>
     <Field label="Cardholder name"><input required autoComplete="cc-name" inputMode="text" value={form.name} onChange={e=>{setError("");setForm({...form,name:sanitizeLetters(e.target.value)})}} placeholder="Alex Morgan"/></Field>
@@ -433,7 +443,7 @@ function OrderDashboard(){
 }
 function Field({label,children}){return <label className="block text-[9px] uppercase tracking-[.18em] text-white/45">{label}<div className="mt-2 [&>input]:w-full [&>input]:border [&>input]:border-white/15 [&>input]:bg-black [&>input]:px-4 [&>input]:py-3 [&>input]:text-sm [&>input]:text-white [&>input]:outline-none [&>input]:focus:border-white">{children}</div></label>}
 
-function About(){return <main className="mx-auto max-w-5xl px-5 py-16 md:px-10 md:py-28"><p className="text-[10px] uppercase tracking-[.3em] text-white/45">ABOUT NOIRLINE</p><h1 className="mt-4 max-w-4xl text-6xl font-black uppercase leading-[.9] tracking-[-.05em] md:text-8xl">Underwear,<br/>reframed.</h1><p className="mt-10 max-w-2xl text-lg leading-8 text-white/60">NOIRLINE is a fictional, design-led underwear label built around a simple idea: the essentials deserve the same attention as everything worn above them.</p><div className="mt-20 grid gap-10 border-t border-white/10 pt-10 md:grid-cols-3">{[["01","Quiet design","A restrained visual language where fit, fabric and proportion do the talking."],["02","Two wardrobes","Women and men have separate catalogs, categories and product IDs inside one monochrome storefront."],["03","Demo by design","This project is a fully interactive storefront prototype, including a simulated checkout."]].map(x=><div key={x[0]}><span className="text-xs text-white/35">{x[0]}</span><h2 className="mt-8 text-2xl font-semibold">{x[1]}</h2><p className="mt-4 text-sm leading-6 text-white/50">{x[2]}</p></div>)}</div></main>}
+function About(){return <main className="mx-auto max-w-5xl px-5 py-16 md:px-10 md:py-28"><p className="text-[10px] uppercase tracking-[.3em] text-white/45">ABOUT NOIRLINE</p><h1 className="mt-4 max-w-4xl text-6xl font-black uppercase leading-[.9] tracking-[-.05em] md:text-8xl">Underwear,<br/>reframed.</h1><p className="mt-10 max-w-2xl text-lg leading-8 text-white/60">NOIRLINE is a fictional, design-led underwear label built around a simple idea: the essentials deserve the same attention as everything worn above them.</p><div className="mt-20 grid gap-10 border-t border-white/10 pt-10 md:grid-cols-3">{[["01","Quiet design","A restrained visual language where fit, fabric and proportion do the talking."],["02","One focused catalog","50 men's styles across boxer briefs, briefs, trunks, boxers, jockstraps and performance, inside one monochrome storefront."],["03","Demo by design","This project is a fully interactive storefront prototype, including a simulated checkout."]].map(x=><div key={x[0]}><span className="text-xs text-white/35">{x[0]}</span><h2 className="mt-8 text-2xl font-semibold">{x[1]}</h2><p className="mt-4 text-sm leading-6 text-white/50">{x[2]}</p></div>)}</div></main>}
 
 function Contact(){const [sent,setSent]=useState(false); return <main className="mx-auto max-w-5xl px-5 py-16 md:px-10 md:py-28"><div className="grid gap-14 md:grid-cols-2"><div><p className="text-[10px] uppercase tracking-[.3em] text-white/45">CONTACT</p><h1 className="mt-4 text-6xl font-black tracking-[-.04em]">Let's talk.</h1><p className="mt-7 max-w-md text-sm leading-7 text-white/55">Questions about fit, products, shipping or this prototype? Send a message through the demo form.</p><div className="mt-10 space-y-4 text-xs text-white/55"><p className="flex gap-3"><Mail size={15}/> hello@noirline.example</p><p className="flex gap-3"><MapPin size={15}/> Amsterdam / online</p><p className="flex gap-3"><Instagram size={15}/> @noirline.studio</p></div></div>{sent?<div className="border border-white/10 p-8"><CheckCircle2/><h2 className="mt-5 text-2xl font-semibold">Message received.</h2><p className="mt-3 text-sm text-white/50">Demo only — no message was actually sent.</p></div>:<form onSubmit={e=>{e.preventDefault();setSent(true)}} className="space-y-5"><Field label="Name"><input required/></Field><Field label="Email"><input required type="email"/></Field><Field label="Message"><textarea required rows="7" className="w-full resize-none border border-white/15 bg-black px-4 py-3 text-sm outline-none focus:border-white"/></Field><button className="w-full bg-white py-4 text-xs font-bold uppercase tracking-[.2em] text-black">Send message</button></form>}</div></main>}
 
@@ -453,13 +463,13 @@ function Raffle(){
   const [form,setForm]=useState({name:profile?.name||"",email:profile?.email||"",password:"",card:"",expiry:"",cvc:""});
   const [error,setError]=useState("");
   const letters=v=>v.replace(/[^a-zA-ZÀ-ÿ\s'-]/g,""); const digits=(v,n)=>v.replace(/\D/g,"").slice(0,n); const card=v=>digits(v,16).replace(/(\d{4})(?=\d)/g,"$1 "); const expiry=v=>{const d=digits(v,4);return d.length>2?`${d.slice(0,2)} / ${d.slice(2)}`:d};
-  const submit=e=>{e.preventDefault(); const email=form.email.trim(); if(form.name.trim().length<2){setError("Name must contain letters only.");return;} if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i.test(email)){setError("Enter a valid email address.");return;} if(form.password.length<6){setError("Password must be at least 6 characters.");return;} if(form.card.replace(/\s/g,"").length!==16){setError("Enter a valid 16-digit demo card number.");return;} if(form.expiry.replace(/\D/g,"").length!==4){setError("Enter expiry as MMYY.");return;} if(form.cvc.length!==3){setError("CVV must contain 3 numbers.");return;} const next={name:form.name.trim(),email}; localStorage.setItem("noirline-profile",JSON.stringify(next)); localStorage.setItem("noirline-raffle-intent","true"); setProfile(next); navigate("/shop/women");};
+  const submit=e=>{e.preventDefault(); const email=form.email.trim(); if(form.name.trim().length<2){setError("Name must contain letters only.");return;} if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i.test(email)){setError("Enter a valid email address.");return;} if(form.password.length<6){setError("Password must be at least 6 characters.");return;} if(form.card.replace(/\s/g,"").length!==16){setError("Enter a valid 16-digit demo card number.");return;} if(form.expiry.replace(/\D/g,"").length!==4){setError("Enter expiry as MMYY.");return;} if(form.cvc.length!==3){setError("CVV must contain 3 numbers.");return;} const next={name:form.name.trim(),email}; localStorage.setItem("noirline-profile",JSON.stringify(next)); localStorage.setItem("noirline-raffle-intent","true"); setProfile(next); navigate("/shop/men");};
   return <main className="mx-auto max-w-5xl px-5 py-12 md:px-10 md:py-20"><div className="border border-white/10 bg-white p-7 text-black md:p-12"><p className="text-[10px] uppercase tracking-[.3em] text-black/45">RAFFLE SECTION</p><h1 className="mt-3 text-5xl font-black uppercase tracking-[-.04em] md:text-7xl">PS5 Giveaway.</h1><p className="mt-5 max-w-2xl text-sm leading-7 text-black/60">Complete the demo entry information, then make a purchase through the collection. That qualifying purchase awards one chance in the PS5 raffle.</p><form onSubmit={submit} className="mt-10 grid gap-5"><div className="grid gap-5 md:grid-cols-2"><Field label="Name"><input required value={form.name} onChange={e=>{setError("");setForm({...form,name:letters(e.target.value)})}} placeholder="Your name"/></Field><Field label="Gmail / Email"><input required type="email" value={form.email} onChange={e=>{setError("");setForm({...form,email:e.target.value})}} placeholder="name@gmail.com"/></Field></div><Field label="Password"><input required type="password" minLength="6" value={form.password} onChange={e=>{setError("");setForm({...form,password:e.target.value})}} placeholder="At least 6 characters"/></Field><div className="grid gap-5 md:grid-cols-3"><Field label="Demo card number"><input required inputMode="numeric" maxLength="19" value={form.card} onChange={e=>{setError("");setForm({...form,card:card(e.target.value)})}} placeholder="4242 4242 4242 4242"/></Field><Field label="Expiry"><input required inputMode="numeric" maxLength="7" value={form.expiry} onChange={e=>{setError("");setForm({...form,expiry:expiry(e.target.value)})}} placeholder="MM / YY"/></Field><Field label="CVV"><input required inputMode="numeric" maxLength="3" value={form.cvc} onChange={e=>{setError("");setForm({...form,cvc:digits(e.target.value,3)})}} placeholder="123"/></Field></div>{error&&<p className="border border-red-700/20 bg-red-100 px-4 py-3 text-xs text-red-700">{error}</p>}<div className="mt-3 flex flex-col gap-3 sm:flex-row"><button type="button" onClick={()=>navigate("/")} className="border border-black/20 px-7 py-4 text-xs font-bold uppercase tracking-[.18em]">Back to Home</button><button className="flex-1 bg-black px-7 py-4 text-xs font-bold uppercase tracking-[.18em] text-white">Make a purchase to get a chance in the drawing <ArrowRight size={15} className="ml-2 inline"/></button></div><p className="text-[9px] uppercase tracking-[.15em] text-black/40">Demo only. No real payment or raffle entry is processed.</p></form></div></main>
 }
 
 function NotFound(){return <main className="px-5 py-32 text-center"><h1 className="text-5xl font-black">Not found.</h1><Link className="mt-6 inline-block underline" to="/">Back home</Link></main>}
 
-function Footer(){return <footer className="border-t border-white/10 bg-[#050505]"><div className="mx-auto grid max-w-7xl gap-12 px-5 py-14 md:grid-cols-[1.4fr_1fr_1fr_1fr] md:px-10"><div><div className="text-lg font-black tracking-[.35em]">NOIRLINE</div><p className="mt-5 max-w-xs text-sm leading-6 text-white/45">A monochrome underwear storefront prototype. Built to feel editorial, fast and intentionally simple.</p></div><div><p className="text-[9px] uppercase tracking-[.25em] text-white/35">Shop</p><div className="mt-5 grid gap-3 text-xs text-white/65"><Link to="/shop/women">Women's underwear</Link><Link to="/shop/men">Men's underwear</Link><Link to="/search?q=cotton">Cotton</Link><Link to="/search?q=seamless">Seamless</Link></div></div><div><p className="text-[9px] uppercase tracking-[.25em] text-white/35">Info</p><div className="mt-5 grid gap-3 text-xs text-white/65"><Link to="/about">About us</Link><Link to="/contact">Contact us</Link><Link to="/account">Account</Link><Link to="/cart">Cart</Link></div></div><div><p className="text-[9px] uppercase tracking-[.25em] text-white/35">Newsletter</p><p className="mt-5 text-xs leading-5 text-white/45">Demo signup — no data is stored.</p><div className="mt-4 flex border-b border-white/20"><input placeholder="Email address" className="w-full bg-transparent py-2 text-xs outline-none"/><button className="text-xs uppercase tracking-[.15em]">Join</button></div></div></div><div className="border-t border-white/10 px-5 py-5 text-center text-[9px] uppercase tracking-[.18em] text-white/25 md:px-10">© 2026 NOIRLINE / Fictional demo storefront / No real payments</div></footer>}
+function Footer(){return <footer className="border-t border-white/10 bg-[#050505]"><div className="mx-auto grid max-w-7xl gap-12 px-5 py-14 md:grid-cols-[1.4fr_1fr_1fr_1fr] md:px-10"><div><div className="text-lg font-black tracking-[.35em]">NOIRLINE</div><p className="mt-5 max-w-xs text-sm leading-6 text-white/45">A monochrome underwear storefront prototype. Built to feel editorial, fast and intentionally simple.</p></div><div><p className="text-[9px] uppercase tracking-[.25em] text-white/35">Shop</p><div className="mt-5 grid gap-3 text-xs text-white/65"><Link to="/shop/men">Men's underwear</Link><Link to="/shop/men?category=boxer-brief">Boxer briefs</Link><Link to="/search?q=cotton">Cotton</Link><Link to="/search?q=seamless">Seamless</Link></div></div><div><p className="text-[9px] uppercase tracking-[.25em] text-white/35">Info</p><div className="mt-5 grid gap-3 text-xs text-white/65"><Link to="/about">About us</Link><Link to="/contact">Contact us</Link><Link to="/account">Account</Link><Link to="/cart">Cart</Link></div></div><div><p className="text-[9px] uppercase tracking-[.25em] text-white/35">Newsletter</p><p className="mt-5 text-xs leading-5 text-white/45">Demo signup — no data is stored.</p><div className="mt-4 flex border-b border-white/20"><input placeholder="Email address" className="w-full bg-transparent py-2 text-xs outline-none"/><button className="text-xs uppercase tracking-[.15em]">Join</button></div></div></div><div className="border-t border-white/10 px-5 py-5 text-center text-[9px] uppercase tracking-[.18em] text-white/25 md:px-10">© 2026 NOIRLINE / Fictional demo storefront / No real payments</div></footer>}
 
 function MobileBar({count}){return <div className="fixed bottom-0 left-0 right-0 z-40 grid grid-cols-4 border-t border-white/15 bg-black/95 py-3 backdrop-blur md:hidden"><Link to="/" className="text-center text-[9px] uppercase tracking-[.18em]">Home</Link><Link to="/account" className="text-center text-[9px] uppercase tracking-[.18em]">Account</Link><Link to="/account?mode=register" className="text-center text-[9px] uppercase tracking-[.18em]">Register</Link><Link to="/cart" className="text-center text-[9px] uppercase tracking-[.18em]">Cart {count?`(${count})`:""}</Link></div>}
 
