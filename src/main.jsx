@@ -3,6 +3,8 @@ import { createRoot } from "react-dom/client";
 import { BrowserRouter, Routes, Route, Link, Navigate, useNavigate, useLocation, useParams, useSearchParams } from "react-router-dom";
 import { Search, ShoppingBag, UserRound, Menu, X, ArrowRight, ChevronDown, Minus, Plus, Trash2, CreditCard, CheckCircle2, Instagram, Mail, MapPin, Truck, CalendarDays, Home as HomeIcon, Sparkles } from "lucide-react";
 import { products } from "./products";
+import { GROUPS, TYPES, NEEDS, fabricOf } from "./fabrics";
+import { ARTICLES, articleBySlug, readMinutes } from "./articles";
 import "./index.css";
 
 const money = (n) => `€${n.toFixed(2)}`;
@@ -76,11 +78,13 @@ function App() {
   return <div className="min-h-screen bg-[#050505] text-white">
     <ScrollToTop/>
     <header className="sticky top-0 z-50 border-b border-white/10 bg-black/90 backdrop-blur-xl">
-      <div className="hidden md:flex h-16 items-center justify-between px-6 lg:px-10">
+      <div className="hidden lg:flex h-16 items-center justify-between px-6 lg:px-10">
         <Link to="/" className="text-lg font-black tracking-[.35em]">NOIRLINE</Link>
-        <nav className="flex items-center gap-8 text-[11px] uppercase tracking-[.18em]">
+        <nav className="flex items-center gap-4 text-[10px] uppercase tracking-[.1em] xl:gap-8 xl:text-[11px] xl:tracking-[.18em]">
           <Link className="underline-grow" to="/">Home</Link>
           <Link className="underline-grow" to="/shop/men">Men</Link>
+          <Link className="underline-grow" to="/fabrics">Fabrics</Link>
+          <Link className="underline-grow" to="/articles">Articles</Link>
           <Link className="underline-grow" to="/orders">Orders</Link>
           <Link className="underline-grow" to="/raffle">Raffle</Link>
           <Link className="underline-grow" to="/about">About</Link>
@@ -98,17 +102,19 @@ function App() {
         </div>
       </div>
 
-      <div className="flex h-16 items-center justify-between px-4 md:hidden">
+      <div className="flex h-16 items-center justify-between px-4 lg:hidden">
         <button onClick={()=>setMenu(v=>!v)} aria-label={menu ? "Close menu" : "Open menu"} className="relative z-[60] flex h-10 w-10 items-center justify-center">{menu?<X/>:<Menu/>}</button>
         <Link to="/" onClick={()=>setMenu(false)} className="text-sm font-black tracking-[.32em]">NOIRLINE</Link>
         <Link to="/cart" onClick={()=>setMenu(false)} className="relative z-[60] flex h-10 w-10 items-center justify-center"><ShoppingBag size={20}/>{count>0&&<span className="absolute right-0 top-0 flex h-4 min-w-4 items-center justify-center rounded-full bg-white px-1 text-[9px] text-black">{count}</span>}</Link>
       </div>
 
-      {menu && <div className="mobile-menu-overlay fixed inset-x-0 bottom-0 top-16 z-50 overflow-y-auto bg-black px-6 py-10 md:hidden">
+      {menu && <div className="mobile-menu-overlay fixed inset-x-0 bottom-0 top-16 z-50 overflow-y-auto bg-black px-6 py-10 lg:hidden">
         <div className="flex min-h-full flex-col">
           <div className="grid gap-7 text-sm uppercase tracking-[.2em]">
             <Link onClick={()=>setMenu(false)} to="/">Home</Link>
             <Link onClick={()=>setMenu(false)} to="/shop/men">Men</Link>
+            <Link onClick={()=>setMenu(false)} to="/fabrics">Fabrics</Link>
+            <Link onClick={()=>setMenu(false)} to="/articles">Articles</Link>
             <Link onClick={()=>setMenu(false)} to="/orders">Orders</Link>
             <Link onClick={()=>setMenu(false)} to="/raffle">Raffle</Link>
             <Link onClick={()=>setMenu(false)} to="/about">About</Link>
@@ -131,6 +137,10 @@ function App() {
       <Route path="/shop/:gender" element={<Shop/>}/>
       <Route path="/product/:id" element={<Product add={add}/>}/>
       <Route path="/search" element={<SearchPage add={add}/>}/>
+      <Route path="/fabrics" element={<FabricGuide/>}/>
+      <Route path="/fabrics/:group" element={<FabricShop/>}/>
+      <Route path="/articles" element={<Articles/>}/>
+      <Route path="/articles/:slug" element={<Article/>}/>
       <Route path="/cart" element={<Cart cart={cart} update={update} subtotal={subtotal} clear={clear}/>}/>
       <Route path="/checkout" element={<Checkout cart={cart} subtotal={subtotal} clear={clear}/>}/>
       <Route path="/about" element={<About/>}/>
@@ -176,6 +186,13 @@ function Home() {
       <div className="grid gap-8 md:grid-cols-2">
         <EditorialTile title="Boxer Briefs" to="/shop/men?category=boxer-brief" image={photo("m27")} kicker="Everyday / seamless / performance"/>
         <EditorialTile title="Briefs" to="/shop/men?category=brief" image={photo("m40")} kicker="Classic / modal / low-rise"/>
+      </div>
+    </section>
+
+    <section className="mx-auto max-w-7xl px-5 pb-20 md:px-10 md:pb-28">
+      <div className="grid gap-6 md:grid-cols-2">
+        <Link to="/fabrics" className="reveal group border border-white/10 p-8 transition hover:-translate-y-1 hover:border-white/40"><p className="text-[10px] uppercase tracking-[.28em] text-white/45">FABRIC GUIDE</p><h3 className="mt-6 text-3xl font-bold tracking-tight">Cotton, linen and more.</h3><p className="mt-4 max-w-md text-sm leading-6 text-white/55">See how every fabric is made, how to wear it and how it feels on your skin, then jump straight to the matching styles.</p><span className="mt-8 inline-flex items-center gap-2 text-[10px] uppercase tracking-[.18em]">Explore fabrics <ArrowRight size={14} className="transition group-hover:translate-x-1"/></span></Link>
+        <Link to="/articles" className="reveal group border border-white/10 p-8 transition hover:-translate-y-1 hover:border-white/40"><p className="text-[10px] uppercase tracking-[.28em] text-white/45">ARTICLES</p><h3 className="mt-6 text-3xl font-bold tracking-tight">Read before you buy.</h3><p className="mt-4 max-w-md text-sm leading-6 text-white/55">Which underwear suits boys, older men, first dates and sport? Short guides with links to the right styles.</p><span className="mt-8 inline-flex items-center gap-2 text-[10px] uppercase tracking-[.18em]">Read articles <ArrowRight size={14} className="transition group-hover:translate-x-1"/></span></Link>
       </div>
     </section>
 
@@ -238,16 +255,18 @@ function MenShop() {
   const categoryFromUrl = () => { const c = searchParams.get("category"); return c && genderItems.some(p=>p.category===c) ? c : "all"; };
   const [category,setCategory]=useState(categoryFromUrl);
   const [sort,setSort]=useState("featured");
+  const [fabric,setFabric]=useState("all");
   // Re-apply the ?category= filter on every navigation (e.g. clicking "Men" again resets to all styles).
-  useEffect(()=>setCategory(categoryFromUrl()),[key]);
+  useEffect(()=>{setCategory(categoryFromUrl());setFabric("all")},[key]);
   const items=useMemo(()=>{
     let x=category==="all" ? [...genderItems] : genderItems.filter(p=>p.category===category);
+    if(fabric!=="all") x=x.filter(p=>fabricOf(p).group===fabric);
     if(sort==="price-low") x.sort((a,b)=>a.price-b.price);
     if(sort==="price-high") x.sort((a,b)=>b.price-a.price);
     return x;
-  },[genderItems,category,sort]);
+  },[genderItems,category,fabric,sort]);
   const cats=[...new Set(genderItems.map(p=>p.category))];
-  useReveal([gender, category, sort, items.length]);
+  useReveal([gender, category, fabric, sort, items.length]);
   return <main className="mx-auto max-w-7xl px-5 py-12 md:px-10 md:py-20">
     <div className="flex flex-col justify-between gap-8 border-b border-white/10 pb-10 md:flex-row md:items-end">
       <div><p className="text-[10px] uppercase tracking-[.3em] text-white/45">SHOP / {gender}</p><h1 className="mt-3 text-5xl font-black uppercase tracking-[-.04em] md:text-7xl">{gender}'s underwear</h1><p className="mt-5 max-w-xl text-sm leading-6 text-white/55">The full men's collection: boxer briefs, briefs, trunks, woven boxers, jockstraps and performance styles in one monochrome edit.</p></div>
@@ -257,6 +276,7 @@ function MenShop() {
       <FilterButton active={category==="all"} onClick={()=>setCategory("all")}>All</FilterButton>
       {cats.map(c=><FilterButton key={c} active={category===c} onClick={()=>setCategory(c)}>{c.replaceAll('-', ' ')}</FilterButton>)}
     </div>
+    <div className="no-scrollbar flex items-center gap-2 overflow-x-auto pb-4"><span className="whitespace-nowrap text-[9px] uppercase tracking-[.2em] text-white/35">Fabric</span>{["all","cotton","linen","other"].map(k=><FilterButton key={k} active={fabric===k} onClick={()=>setFabric(k)}>{k==="all"?"All fabrics":GROUPS[k].name}</FilterButton>)}<Link to="/fabrics" className="whitespace-nowrap px-2 text-[9px] uppercase tracking-[.16em] text-white/45 underline underline-offset-4 hover:text-white">Fabric guide</Link></div>
     <ProductGrid items={items}/>
   </main>
 }
@@ -297,7 +317,7 @@ function ProductCard({p,i}) {
       {p.badge && <span className="absolute left-3 top-3 bg-white px-2 py-1 text-[8px] font-bold tracking-[.15em] text-black">{p.badge}</span>}
       <span className="absolute bottom-3 right-3 translate-y-2 bg-black px-3 py-2 text-[9px] uppercase tracking-[.14em] opacity-0 transition group-hover:translate-y-0 group-hover:opacity-100">Quick view</span>
     </div>
-    <div className="pt-4"><div className="flex justify-between gap-2"><h3 className="text-xs font-medium md:text-sm">{p.name}</h3><span className="text-xs text-white/70">{money(p.price)}</span></div><p className="mt-2 text-[9px] uppercase tracking-[.16em] text-white/35">{p.collection} · {p.category}</p></div>
+    <div className="pt-4"><div className="flex justify-between gap-2"><h3 className="text-xs font-medium md:text-sm">{p.name}</h3><span className="text-xs text-white/70">{money(p.price)}</span></div><p className="mt-2 text-[9px] uppercase tracking-[.16em] text-white/35">{p.collection} · {p.category} · {fabricOf(p).label}</p></div>
   </Link>
 }
 
@@ -316,11 +336,13 @@ function Product({add}) {
         <Link to={`/shop/${p.gender.toLowerCase()}`} className="text-[9px] uppercase tracking-[.25em] text-white/40">← {p.gender}'s underwear</Link>
         <div className="mt-8 flex items-start justify-between gap-5"><div><p className="text-[10px] uppercase tracking-[.25em] text-white/45">{p.collection}</p><h1 className="mt-2 text-4xl font-bold tracking-tight md:text-5xl">{p.name}</h1></div><span className="text-lg">{money(p.price)}</span></div>
         <p className="mt-7 max-w-lg text-sm leading-7 text-white/60">{p.description}</p>
+        <FabricLine p={p}/>
         <div className="mt-9 border-y border-white/10 py-7"><div className="mb-4 flex items-center justify-between"><span className="text-[10px] uppercase tracking-[.2em]">Select size</span><span className="text-[10px] uppercase tracking-[.15em] text-white/40">Color: {p.color}</span></div><div className="grid grid-cols-5 gap-2">{p.sizes.map(s=><button key={s} onClick={()=>setSize(s)} className={`border py-3 text-xs transition ${size===s?"border-white bg-white text-black":"border-white/15 hover:border-white/60"}`}>{s}</button>)}</div></div>
         <button onClick={()=>{add(p,size);setAdded(true);setTimeout(()=>setAdded(false),1600)}} className="mt-7 flex w-full items-center justify-center gap-3 bg-white py-5 text-xs font-bold uppercase tracking-[.2em] text-black hover:bg-white/90">{added?<><CheckCircle2 size={17}/> Added to cart</>:<>Add to cart <ShoppingBag size={16}/></>}</button>
         <div className="mt-8 grid grid-cols-3 border border-white/10"><div className="p-4 text-center text-[9px] uppercase tracking-[.14em] text-white/45">Soft touch</div><div className="border-x border-white/10 p-4 text-center text-[9px] uppercase tracking-[.14em] text-white/45">Easy returns</div><div className="p-4 text-center text-[9px] uppercase tracking-[.14em] text-white/45">Secure demo</div></div>
       </div>
     </div>
+    <FabricPanel p={p}/>
   </main>
 }
 
@@ -329,7 +351,7 @@ function SearchPage({add}) {
   const q = (params.get("q") || "").trim();
   const needle = q.toLowerCase();
   const results = needle
-    ? products.filter(p=>`${p.name} ${p.category} ${p.collection} ${p.gender} ${p.description}`.toLowerCase().includes(needle))
+    ? products.filter(p=>`${p.name} ${p.category} ${p.collection} ${p.gender} ${p.description} ${fabricOf(p).label} ${fabricOf(p).comp} ${fabricOf(p).groupName}`.toLowerCase().includes(needle))
     : products;
   useReveal([q, results.length]);
   return <main className="mx-auto min-h-[60vh] max-w-7xl px-5 py-12 md:px-10 md:py-20">
@@ -338,7 +360,7 @@ function SearchPage({add}) {
       <div><h1 className="text-5xl font-black md:text-7xl">{q ? `“${q}”` : "Search products"}</h1><p className="mt-5 text-sm text-white/45">{results.length} matching products.</p></div>
       <Link to="/shop/men" className="text-[10px] uppercase tracking-[.18em] text-white/50 hover:text-white">Men's collection →</Link>
     </div>
-    {results.length ? <ProductGrid items={results}/> : <div className="py-24 text-center text-white/45"><Search className="mx-auto mb-5 opacity-30"/><p>No matches for “{q}”.</p><p className="mt-3 text-xs">Try cotton, brief, boxer, trunk, seamless, mesh or jockstrap.</p></div>}
+    {results.length ? <ProductGrid items={results}/> : <div className="py-24 text-center text-white/45"><Search className="mx-auto mb-5 opacity-30"/><p>No matches for “{q}”.</p><p className="mt-3 text-xs">Try cotton, linen, modal, brief, boxer, trunk, seamless, mesh or jockstrap.</p></div>}
   </main>
 }
 
@@ -469,7 +491,188 @@ function Raffle(){
 
 function NotFound(){return <main className="px-5 py-32 text-center"><h1 className="text-5xl font-black">Not found.</h1><Link className="mt-6 inline-block underline" to="/">Back home</Link></main>}
 
-function Footer(){return <footer className="border-t border-white/10 bg-[#050505]"><div className="mx-auto grid max-w-7xl gap-12 px-5 py-14 md:grid-cols-[1.4fr_1fr_1fr_1fr] md:px-10"><div><div className="text-lg font-black tracking-[.35em]">NOIRLINE</div><p className="mt-5 max-w-xs text-sm leading-6 text-white/45">A monochrome underwear storefront prototype. Built to feel editorial, fast and intentionally simple.</p></div><div><p className="text-[9px] uppercase tracking-[.25em] text-white/35">Shop</p><div className="mt-5 grid gap-3 text-xs text-white/65"><Link to="/shop/men">Men's underwear</Link><Link to="/shop/men?category=boxer-brief">Boxer briefs</Link><Link to="/search?q=cotton">Cotton</Link><Link to="/search?q=seamless">Seamless</Link></div></div><div><p className="text-[9px] uppercase tracking-[.25em] text-white/35">Info</p><div className="mt-5 grid gap-3 text-xs text-white/65"><Link to="/about">About us</Link><Link to="/contact">Contact us</Link><Link to="/account">Account</Link><Link to="/cart">Cart</Link></div></div><div><p className="text-[9px] uppercase tracking-[.25em] text-white/35">Newsletter</p><p className="mt-5 text-xs leading-5 text-white/45">Demo signup — no data is stored.</p><div className="mt-4 flex border-b border-white/20"><input placeholder="Email address" className="w-full bg-transparent py-2 text-xs outline-none"/><button className="text-xs uppercase tracking-[.15em]">Join</button></div></div></div><div className="border-t border-white/10 px-5 py-5 text-center text-[9px] uppercase tracking-[.18em] text-white/25 md:px-10">© 2026 NOIRLINE / Fictional demo storefront / No real payments</div></footer>}
+/* ---------- Fabric guide + Articles ---------- */
+const jump = (id) => document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+const KICKER = "text-[10px] uppercase tracking-[.3em] text-white/45";
+const H3 = "text-[10px] uppercase tracking-[.25em] text-white/40";
+
+// turns [label](/path) into router links
+function Rich({text}) {
+  return <>{text.split(/(\[[^\]]+\]\(\/[^)]+\))/g).map((s,i)=>{
+    const m = s.match(/^\[([^\]]+)\]\((\/[^)]+)\)$/);
+    return m ? <Link key={i} to={m[2]} className="underline decoration-white/40 underline-offset-4 hover:decoration-white">{m[1]}</Link> : s;
+  })}</>;
+}
+
+function Meters({m}) {
+  return <div className="grid grid-cols-2 gap-x-6 gap-y-4">{[["Breathability","breath"],["Softness","soft"],["Moisture handling","moisture"],["Stretch","stretch"]].map(([l,k])=><div key={k}><div className="flex justify-between text-[9px] uppercase tracking-[.16em] text-white/45"><span>{l}</span><span>{m[k]}/5</span></div><div className="mt-2 flex gap-1">{[1,2,3,4,5].map(n=><span key={n} className={`h-1 flex-1 ${n<=m[k]?"bg-white":"bg-white/15"}`}/>)}</div></div>)}</div>;
+}
+
+function MiniProduct({p}) {
+  return <Link to={`/product/${p.id}`} className="group block">
+    <div className="overflow-hidden bg-white"><img src={p.image} alt={p.name} loading="lazy" decoding="async" className="aspect-[273/350] w-full object-cover transition duration-500 group-hover:scale-105" style={{objectPosition:p.gender==="Men"?"50% 72%":"50% 50%"}} onError={e=>{e.currentTarget.style.display="none"}}/></div>
+    <p className="mt-3 text-xs font-medium">{p.name}</p>
+    <p className="mt-1 text-[9px] uppercase tracking-[.16em] text-white/40">{fabricOf(p).label} · {money(p.price)}</p>
+  </Link>;
+}
+
+function MiniStrip({items}) {
+  return <div className="no-scrollbar flex gap-4 overflow-x-auto md:grid md:grid-cols-6 md:overflow-visible">{items.map(p=><div key={p.id} className="w-36 shrink-0 md:w-auto"><MiniProduct p={p}/></div>)}</div>;
+}
+
+// Product page: compact fabric line next to the buy box, full details section below the product
+function FabricLine({p}) {
+  const f = fabricOf(p);
+  return <p className="mt-5 text-xs leading-6 text-white/50"><span className="uppercase tracking-[.16em] text-white/35">Fabric</span> · <span className="text-white/80">{f.label}</span> · {f.comp}<button onClick={()=>jump("fabric-care")} className="ml-3 whitespace-nowrap underline underline-offset-4 hover:text-white">Fabric details ↓</button></p>;
+}
+
+function FabricPanel({p}) {
+  const f = fabricOf(p);
+  let reads = ARTICLES.filter(a=>a.picks.includes(p.id)).slice(0,2);
+  if(!reads.length) reads = [articleBySlug("choosing-underwear-fabric")];
+  return <section id="fabric-care" className="mt-16 scroll-mt-28 border-t border-white/10 pt-12">
+    <p className={KICKER}>FABRIC &amp; CARE</p>
+    <div className="mt-6 grid gap-10 md:grid-cols-3">
+      <div><h2 className="text-3xl font-bold tracking-tight">{f.label}</h2><p className="mt-2 text-xs uppercase tracking-[.16em] text-white/45">Typical composition: {f.comp}</p><div className="mt-6"><Meters m={f.meters}/></div></div>
+      <dl className="grid content-start gap-5 text-sm leading-6 text-white/60">
+        <div><dt className={H3}>How it is made</dt><dd className="mt-2">{f.made}</dd></div>
+        <div><dt className={H3}>Skin comfort</dt><dd className="mt-2">{f.skin}</dd></div>
+        <div><dt className={H3}>Best for</dt><dd className="mt-2">{f.best}</dd></div>
+      </dl>
+      <div className="grid content-start gap-3 text-sm text-white/60">
+        <p className={H3}>Learn more</p>
+        <Link to={`/fabrics/${f.group}`} className="underline underline-offset-4 hover:text-white">All {f.groupName.toLowerCase()} underwear →</Link>
+        <Link to="/fabrics" className="underline underline-offset-4 hover:text-white">Open the fabric guide →</Link>
+        {reads.map(a=><Link key={a.slug} to={`/articles/${a.slug}`} className="underline underline-offset-4 hover:text-white">Read: {a.title}</Link>)}
+      </div>
+    </div>
+  </section>;
+}
+
+function FabricGuide() {
+  const [need,setNeed]=useState(null);
+  const matches=useMemo(()=>need===null?[]:products.filter(p=>NEEDS[need].types.includes(fabricOf(p).type)),[need]);
+  useReveal([need]);
+  return <main className="mx-auto max-w-7xl px-5 py-12 md:px-10 md:py-20">
+    <p className={KICKER}>FABRIC GUIDE</p>
+    <h1 className="mt-4 max-w-4xl text-6xl font-black uppercase leading-[.9] tracking-[-.05em] md:text-8xl">Know what<br/>you wear.</h1>
+    <p className="mt-8 max-w-2xl text-lg leading-8 text-white/60">Every style is grouped by fabric: cotton, linen and other fabrics. Learn how each one is made, how to wear it and how it treats your skin, then go straight to the matching styles.</p>
+    <div className="mt-10 flex flex-wrap gap-2">{Object.values(GROUPS).map(g=><button key={g.key} onClick={()=>jump(g.key)} className="border border-white/15 px-4 py-2 text-[10px] uppercase tracking-[.16em] text-white/70 hover:border-white hover:text-white">{g.name} ({products.filter(p=>fabricOf(p).group===g.key).length})</button>)}</div>
+
+    <section className="mt-14 border border-white/10 p-6 md:p-10">
+      <p className={KICKER}>QUICK CHOOSER</p><h2 className="mt-3 text-3xl font-bold tracking-tight md:text-4xl">What do you need?</h2>
+      <div className="mt-6 flex flex-wrap gap-2">{NEEDS.map((n,i)=><FilterButton key={n.label} active={need===i} onClick={()=>setNeed(need===i?null:i)}>{n.label}</FilterButton>)}</div>
+      {need!==null && <div className="mt-8"><p className="max-w-2xl text-sm leading-7 text-white/60">{NEEDS[need].why} <span className="text-white/40">Look for: {NEEDS[need].types.map(t=>TYPES[t].label).join(", ")}.</span></p><p className="mt-4 text-[10px] uppercase tracking-[.18em] text-white/40">{matches.length} matching styles{matches.length>12?" (showing 12)":""}</p><div className="mt-5 grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-6">{matches.slice(0,12).map(p=><MiniProduct key={p.id} p={p}/>)}</div></div>}
+    </section>
+
+    {Object.values(GROUPS).map(g=>{
+      const items=products.filter(p=>fabricOf(p).group===g.key);
+      const types=Object.keys(TYPES).filter(k=>TYPES[k].group===g.key && items.some(p=>fabricOf(p).type===k));
+      return <section key={g.key} id={g.key} className="mt-24 scroll-mt-28 border-t border-white/10 pt-14">
+        <div className="grid gap-12 md:grid-cols-[.9fr_1.1fr]">
+          <div>
+            <p className={KICKER}>{g.name.toUpperCase()} / {items.length} STYLES</p>
+            <h2 className="mt-3 text-5xl font-black uppercase tracking-[-.04em] md:text-7xl">{g.name}</h2>
+            <p className="mt-3 text-xs uppercase tracking-[.18em] text-white/45">{g.tagline}</p>
+            <p className="mt-6 text-sm leading-7 text-white/60">{g.intro}</p>
+            <div className="mt-8"><Meters m={g.meters}/></div>
+            <p className="mt-6 text-xs text-white/50"><span className="uppercase tracking-[.16em] text-white/35">Best for</span> · {g.best}</p>
+            <Link to={`/fabrics/${g.key}`} className="group mt-8 inline-flex items-center gap-3 bg-white px-6 py-4 text-xs font-bold uppercase tracking-[.18em] text-black">Shop {g.name.toLowerCase()} underwear ({items.length}) <ArrowRight size={16} className="transition group-hover:translate-x-1"/></Link>
+          </div>
+          <div className="grid gap-8">
+            <div><h3 className={H3}>How it is made</h3><ol className="mt-4 grid gap-3 text-sm leading-6 text-white/60">{g.made.map((s,i)=><li key={i} className="flex gap-4"><span className="text-white/30">{String(i+1).padStart(2,"0")}</span><span>{s}</span></li>)}</ol></div>
+            <div><h3 className={H3}>How to wear it</h3><ul className="mt-4 grid gap-2 text-sm leading-6 text-white/60">{g.wear.map((s,i)=><li key={i}>— {s}</li>)}</ul></div>
+            <div><h3 className={H3}>Is it skin-friendly?</h3><ul className="mt-4 grid gap-2 text-sm leading-6 text-white/60">{g.skin.map((s,i)=><li key={i}>— {s}</li>)}</ul></div>
+            <div><h3 className={H3}>Care</h3><p className="mt-4 text-sm leading-6 text-white/60">{g.care}</p></div>
+          </div>
+        </div>
+        <h3 className={`${H3} mt-14`}>Fabric types in this group</h3>
+        <div className="mt-5 grid gap-4 md:grid-cols-3">{types.map(k=><Link key={k} to={`/fabrics/${g.key}?type=${k}`} className="group border border-white/10 p-5 transition hover:border-white/40"><p className="text-sm font-medium">{TYPES[k].label}</p><p className="mt-1 text-[10px] uppercase tracking-[.14em] text-white/40">{TYPES[k].comp}</p><p className="mt-3 text-xs leading-5 text-white/55">{TYPES[k].made}</p><p className="mt-2 text-xs leading-5 text-white/55">{TYPES[k].skin}</p><p className="mt-4 text-[9px] uppercase tracking-[.16em] text-white/50">{items.filter(p=>fabricOf(p).type===k).length} styles →</p></Link>)}</div>
+        <h3 className={`${H3} mt-14 mb-5`}>Styles in {g.name.toLowerCase()}</h3>
+        <MiniStrip items={items.slice(0,6)}/>
+      </section>;
+    })}
+
+    <section className="mt-24 border-t border-white/10 pt-14">
+      <p className={KICKER}>KEEP READING</p><h2 className="mt-3 text-3xl font-bold tracking-tight md:text-4xl">Fabric and fit articles</h2>
+      <div className="mt-8 grid gap-4 md:grid-cols-3">{["choosing-underwear-fabric","underwear-size-and-fit","underwear-care-and-replacement"].map(s=>articleBySlug(s)).map(a=><ArticleCard key={a.slug} a={a}/>)}</div>
+    </section>
+  </main>
+}
+
+function FabricShop() {
+  const {group}=useParams(); const g=GROUPS[group];
+  const [params,setParams]=useSearchParams();
+  const type=params.get("type")||"all";
+  const inGroup=useMemo(()=>products.filter(p=>fabricOf(p).group===group),[group]);
+  const items=inGroup.filter(p=>type==="all"||fabricOf(p).type===type);
+  const types=Object.keys(TYPES).filter(k=>TYPES[k].group===group && inGroup.some(p=>fabricOf(p).type===k));
+  useReveal([group,type,items.length]);
+  if(!g) return <NotFound/>;
+  return <main className="mx-auto max-w-7xl px-5 py-12 md:px-10 md:py-20">
+    <div className="flex flex-col justify-between gap-8 border-b border-white/10 pb-10 md:flex-row md:items-end">
+      <div><p className={KICKER}>FABRICS / {g.name.toUpperCase()}</p><h1 className="mt-3 text-5xl font-black uppercase tracking-[-.04em] md:text-7xl">{g.name} underwear</h1><p className="mt-5 max-w-xl text-sm leading-6 text-white/55">{g.intro}</p></div>
+      <div className="grid gap-2 text-[10px] uppercase tracking-[.18em] text-white/50"><span>{items.length} styles</span><Link to="/fabrics" onClick={()=>setTimeout(()=>jump(g.key),50)} className="underline underline-offset-4 hover:text-white">How {g.name.toLowerCase()} is made →</Link><Link to="/articles/choosing-underwear-fabric" className="underline underline-offset-4 hover:text-white">Which fabric is right for me? →</Link></div>
+    </div>
+    <div className="no-scrollbar flex gap-2 overflow-x-auto pt-6 pb-4"><FilterButton active={type==="all"} onClick={()=>setParams({})}>All {g.name.toLowerCase()}</FilterButton>{types.map(k=><FilterButton key={k} active={type===k} onClick={()=>setParams({type:k})}>{TYPES[k].label}</FilterButton>)}</div>
+    {items.length ? <ProductGrid items={items}/> : <p className="py-24 text-center text-sm text-white/45">No styles match these filters yet.</p>}
+  </main>
+}
+
+function ArticleCard({a,big=false}) {
+  return <Link to={`/articles/${a.slug}`} className={`reveal group flex flex-col justify-between border border-white/10 p-6 transition hover:-translate-y-1 hover:border-white/40 ${big?"md:col-span-2 md:p-10":""}`}>
+    <div><p className="text-[9px] uppercase tracking-[.25em] text-white/40">{a.topic} · {readMinutes(a)} min read</p><h2 className={`mt-4 font-bold tracking-tight ${big?"text-3xl md:text-5xl":"text-xl"}`}>{a.title}</h2><p className="mt-4 max-w-xl text-sm leading-6 text-white/55">{a.excerpt}</p></div>
+    <span className="mt-8 inline-flex items-center gap-2 text-[10px] uppercase tracking-[.18em]">Read article <ArrowRight size={14} className="transition group-hover:translate-x-1"/></span>
+  </Link>
+}
+
+function Articles() {
+  const topics=["All",...new Set(ARTICLES.map(a=>a.topic))];
+  const [topic,setTopic]=useState("All");
+  const list=ARTICLES.filter(a=>topic==="All"||a.topic===topic);
+  useReveal([topic]);
+  return <main className="mx-auto max-w-7xl px-5 py-12 md:px-10 md:py-20">
+    <p className={KICKER}>ARTICLES</p>
+    <h1 className="mt-4 max-w-4xl text-6xl font-black uppercase leading-[.9] tracking-[-.05em] md:text-8xl">Read before<br/>you buy.</h1>
+    <p className="mt-8 max-w-2xl text-lg leading-8 text-white/60">Plain-language guides on fabrics, fit and the right underwear for every stage of life and every occasion. Each article links to related reading and to the matching styles.</p>
+    <div className="no-scrollbar mt-10 flex gap-2 overflow-x-auto pb-2">{topics.map(t=><FilterButton key={t} active={topic===t} onClick={()=>setTopic(t)}>{t}</FilterButton>)}</div>
+    <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">{list.map((a,i)=><ArticleCard key={a.slug} a={a} big={i===0&&topic==="All"}/>)}</div>
+    <div className="mt-16 flex flex-wrap items-center gap-4 border-t border-white/10 pt-8 text-xs text-white/50"><span>Looking for a fabric instead?</span><Link to="/fabrics" className="underline underline-offset-4 hover:text-white">Open the fabric guide</Link></div>
+  </main>
+}
+
+function Article() {
+  const {slug}=useParams(); const a=articleBySlug(slug);
+  useReveal([slug]);
+  if(!a) return <NotFound/>;
+  const picks=a.picks.map(id=>products.find(p=>p.id===id)).filter(Boolean);
+  const related=a.related.map(articleBySlug).filter(Boolean);
+  return <main className="mx-auto max-w-7xl px-5 py-12 md:px-10 md:py-20">
+    <Link to="/articles" className="text-[9px] uppercase tracking-[.25em] text-white/40">← All articles</Link>
+    <div className="mt-8 grid gap-12 lg:grid-cols-[1fr_300px] lg:gap-16">
+      <aside className="lg:order-2 lg:sticky lg:top-28 lg:self-start">
+        <p className={H3}>In this article</p>
+        <div className="mt-4 grid gap-1 text-sm">{a.sections.map((s,i)=><button key={s.h} onClick={()=>jump(`s${i}`)} className="py-1 text-left text-white/60 hover:text-white">{String(i+1).padStart(2,"0")} · {s.h}</button>)}</div>
+        <p className={`${H3} mt-8`}>Fabrics mentioned</p>
+        <div className="mt-4 flex flex-wrap gap-2">{a.fabrics.map(k=><Link key={k} to={`/fabrics/${k}`} className="border border-white/15 px-3 py-2 text-[10px] uppercase tracking-[.16em] text-white/70 hover:border-white hover:text-white">{GROUPS[k].name}</Link>)}</div>
+      </aside>
+      <article className="max-w-2xl lg:order-1">
+        <p className={KICKER}>{a.topic.toUpperCase()} · {readMinutes(a)} MIN READ</p>
+        <h1 className="mt-4 text-4xl font-black tracking-tight md:text-6xl">{a.title}</h1>
+        <p className="mt-8 text-lg leading-8 text-white/70"><Rich text={a.intro}/></p>
+        {a.sections.map((s,i)=><section key={s.h} id={`s${i}`} className="mt-12 scroll-mt-28"><h2 className="text-2xl font-bold tracking-tight">{s.h}</h2>{s.p.map((t,j)=><p key={j} className="mt-4 text-[15px] leading-8 text-white/60"><Rich text={t}/></p>)}</section>)}
+        <div className="mt-14 border border-white/10 p-6"><p className={H3}>Quick checklist</p><ul className="mt-4 grid gap-3 text-sm leading-6 text-white/70">{a.checklist.map((c,i)=><li key={i} className="flex gap-3"><CheckCircle2 size={16} className="mt-1 shrink-0 text-white/50"/><span>{c}</span></li>)}</ul></div>
+        <h2 className="mt-16 text-2xl font-bold tracking-tight">Styles to look at</h2>
+        {a.note && <p className="mt-3 text-xs leading-5 text-white/45">{a.note}</p>}
+        <div className="mt-6 grid grid-cols-2 gap-4 md:grid-cols-4">{picks.map(p=><MiniProduct key={p.id} p={p}/>)}</div>
+        <h2 className="mt-16 text-2xl font-bold tracking-tight">Related reading</h2>
+        <div className="mt-6 grid gap-4">{related.map(r=><ArticleCard key={r.slug} a={r}/>)}</div>
+      </article>
+    </div>
+  </main>
+}
+
+function Footer(){return <footer className="border-t border-white/10 bg-[#050505]"><div className="mx-auto grid max-w-7xl gap-12 px-5 py-14 md:grid-cols-[1.4fr_1fr_1fr_1fr] md:px-10"><div><div className="text-lg font-black tracking-[.35em]">NOIRLINE</div><p className="mt-5 max-w-xs text-sm leading-6 text-white/45">A monochrome underwear storefront prototype. Built to feel editorial, fast and intentionally simple.</p></div><div><p className="text-[9px] uppercase tracking-[.25em] text-white/35">Shop</p><div className="mt-5 grid gap-3 text-xs text-white/65"><Link to="/shop/men">Men's underwear</Link><Link to="/shop/men?category=boxer-brief">Boxer briefs</Link><Link to="/fabrics/cotton">Cotton</Link><Link to="/fabrics/linen">Linen</Link><Link to="/search?q=seamless">Seamless</Link></div></div><div><p className="text-[9px] uppercase tracking-[.25em] text-white/35">Info</p><div className="mt-5 grid gap-3 text-xs text-white/65"><Link to="/fabrics">Fabric guide</Link><Link to="/articles">Articles</Link><Link to="/about">About us</Link><Link to="/contact">Contact us</Link><Link to="/account">Account</Link><Link to="/cart">Cart</Link></div></div><div><p className="text-[9px] uppercase tracking-[.25em] text-white/35">Newsletter</p><p className="mt-5 text-xs leading-5 text-white/45">Demo signup — no data is stored.</p><div className="mt-4 flex border-b border-white/20"><input placeholder="Email address" className="w-full bg-transparent py-2 text-xs outline-none"/><button className="text-xs uppercase tracking-[.15em]">Join</button></div></div></div><div className="border-t border-white/10 px-5 py-5 text-center text-[9px] uppercase tracking-[.18em] text-white/25 md:px-10">© 2026 NOIRLINE / Fictional demo storefront / No real payments</div></footer>}
 
 function MobileBar({count}){return <div className="fixed bottom-0 left-0 right-0 z-40 grid grid-cols-4 border-t border-white/15 bg-black/95 py-3 backdrop-blur md:hidden"><Link to="/" className="text-center text-[9px] uppercase tracking-[.18em]">Home</Link><Link to="/account" className="text-center text-[9px] uppercase tracking-[.18em]">Account</Link><Link to="/account?mode=register" className="text-center text-[9px] uppercase tracking-[.18em]">Register</Link><Link to="/cart" className="text-center text-[9px] uppercase tracking-[.18em]">Cart {count?`(${count})`:""}</Link></div>}
 
